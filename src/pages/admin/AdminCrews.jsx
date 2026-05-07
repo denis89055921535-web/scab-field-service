@@ -164,6 +164,7 @@ export default function AdminCrews() {
                 <TableHead>№</TableHead>
                 <TableHead>Тип БУ</TableHead>
                 <TableHead>Месторождение</TableHead>
+                <TableHead>Компл. БИ</TableHead>
                 <TableHead>Статус</TableHead>
                 <TableHead className="text-right">Действия</TableHead>
               </TableRow>
@@ -174,6 +175,7 @@ export default function AdminCrews() {
                   <TableCell className="font-medium">{crew.crew_number}</TableCell>
                   <TableCell>{crew.drill_type || '—'}</TableCell>
                   <TableCell>{crew.field_name || '—'}</TableCell>
+                  <TableCell>{crew.bi_kits_count ?? '—'}</TableCell>
                   <TableCell><StatusBadge statusMap={crewStatuses} status={crew.status} /></TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(crew)}>
