@@ -179,8 +179,28 @@ export default function TripForm() {
         </div>
 
         <div>
-          <Label className="text-xs">Комплекты БИ</Label>
-          <Input value={form.bi_kits_numbers} onChange={e => setForm(f => ({ ...f, bi_kits_numbers: e.target.value }))} placeholder="например: БИ-001, БИ-002" />
+          <Label className="text-xs">Номер комплекта БИ</Label>
+          {(() => {
+            const crew = crews.find(c => c.crew_number === form.crew_number);
+            const kits = crew?.bi_kits_numbers
+              ? crew.bi_kits_numbers.split(',').map(s => s.trim()).filter(Boolean)
+              : [];
+            if (kits.length > 0) {
+              return (
+                <Select value={form.bi_kits_numbers} onValueChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
+                  <SelectContent>
+                    {kits.map(kit => (
+                      <SelectItem key={kit} value={kit}>{kit}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              );
+            }
+            return (
+              <Input value={form.bi_kits_numbers} onChange={e => setForm(f => ({ ...f, bi_kits_numbers: e.target.value }))} placeholder="Номер комплекта БИ" />
+            );
+          })()}
         </div>
 
         <div>
