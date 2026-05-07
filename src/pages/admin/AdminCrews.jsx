@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Camera, Loader2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import StatusBadge from '@/components/common/StatusBadge';
 import { crewStatuses } from '@/lib/statusConfig';
@@ -25,24 +25,7 @@ export default function AdminCrews() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
-  const [kitInput, setKitInput] = useState('');
 
-  const kits = form.bi_kits_numbers
-    ? form.bi_kits_numbers.split(',').map(s => s.trim()).filter(Boolean)
-    : [];
-
-  const addKit = () => {
-    const val = kitInput.trim();
-    if (!val) return;
-    const updated = [...kits, val].join(', ');
-    setForm(f => ({ ...f, bi_kits_numbers: updated }));
-    setKitInput('');
-  };
-
-  const removeKit = (idx) => {
-    const updated = kits.filter((_, i) => i !== idx).join(', ');
-    setForm(f => ({ ...f, bi_kits_numbers: updated }));
-  };
 
   const { data: crews = [], isLoading } = useQuery({
     queryKey: ['crews'],
@@ -90,7 +73,6 @@ export default function AdminCrews() {
     setOpen(false);
     setForm(emptyForm);
     setEditId(null);
-    setKitInput('');
   };
 
   const handlePhotoUpload = async (e) => {
@@ -130,29 +112,7 @@ export default function AdminCrews() {
               </div>
               <div>
                 <Label className="text-xs">Номера комплектов БИ</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    value={kitInput}
-                    onChange={e => setKitInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addKit())}
-                    placeholder="например: БИ-001"
-                  />
-                  <Button type="button" size="icon" variant="outline" onClick={addKit}>
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                {kits.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {kits.map((kit, idx) => (
-                      <span key={idx} className="flex items-center gap-1 bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-md">
-                        {kit}
-                        <button onClick={() => removeKit(idx)} className="hover:text-destructive">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <Input value={form.bi_kits_numbers} onChange={e => setForm({ ...form, bi_kits_numbers: e.target.value })} placeholder="например: БИ-001, БИ-002" />
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Интернет</Label>
