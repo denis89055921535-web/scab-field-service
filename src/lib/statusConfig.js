@@ -1,9 +1,7 @@
 export const crewStatuses = {
   in_work: { label: 'В работе', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  needs_trip: { label: 'Требуется выезд', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  maintenance: { label: 'На обслуживании', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  waiting_parts: { label: 'Ожидает запчасти', color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  inactive: { label: 'Неактивна', color: 'bg-gray-100 text-gray-500 border-gray-200' },
+  waiting: { label: 'В ожидании работ', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+  inactive: { label: 'Не в работе', color: 'bg-red-100 text-red-700 border-red-200' },
 };
 
 export const tripStatuses = {

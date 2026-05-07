@@ -38,9 +38,7 @@
       "type": "string",
       "enum": [
         "in_work",
-        "needs_trip",
-        "maintenance",
-        "waiting_parts",
+        "waiting",
         "inactive"
       ],
       "description": "Current status"
