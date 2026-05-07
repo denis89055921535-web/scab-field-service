@@ -13,6 +13,7 @@ import { Camera, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import { tripStatuses, checklistItems } from '@/lib/statusConfig';
+import BiKitsInput from '@/components/common/BiKitsInput';
 
 export default function TripForm() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function TripForm() {
     employee_name: '',
     crew_number: '',
     field_name: '',
+    bi_kits_numbers: '',
     reason: '',
     status: 'planned',
     comment: '',
@@ -65,6 +67,7 @@ export default function TripForm() {
         employee_name: existingTrip.employee_name || '',
         crew_number: existingTrip.crew_number || '',
         field_name: existingTrip.field_name || '',
+        bi_kits_numbers: existingTrip.bi_kits_numbers || '',
         reason: existingTrip.reason || '',
         status: existingTrip.status || 'planned',
         comment: existingTrip.comment || '',
@@ -94,6 +97,7 @@ export default function TripForm() {
       ...f,
       crew_number: crewNumber,
       field_name: crew?.field_name || f.field_name,
+      bi_kits_numbers: crew?.bi_kits_numbers || f.bi_kits_numbers,
     }));
   };
 
@@ -172,6 +176,11 @@ export default function TripForm() {
             onChange={e => setForm({ ...form, field_name: e.target.value })}
             placeholder="Месторождение"
           />
+        </div>
+
+        <div>
+          <Label className="text-xs">Комплекты БИ</Label>
+          <BiKitsInput value={form.bi_kits_numbers} onChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))} />
         </div>
 
         <div>
