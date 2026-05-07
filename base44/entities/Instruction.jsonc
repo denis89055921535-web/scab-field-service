@@ -1,0 +1,42 @@
+{
+  "name": "Instruction",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Instruction title"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "rfid",
+        "equipment",
+        "regulations",
+        "safety",
+        "software",
+        "other"
+      ],
+      "description": "Category"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "File URL (PDF/DOCX/image)"
+    },
+    "version": {
+      "type": "string",
+      "description": "Document version"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original file name"
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}

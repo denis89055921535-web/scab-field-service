@@ -1,0 +1,86 @@
+{
+  "name": "TripLog",
+  "type": "object",
+  "properties": {
+    "trip_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the trip"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Employee full name"
+    },
+    "crew_number": {
+      "type": "string",
+      "description": "Drilling crew number"
+    },
+    "field_name": {
+      "type": "string",
+      "description": "Oil field name"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for trip"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "in_progress",
+        "completed",
+        "needs_repeat"
+      ],
+      "description": "Trip status"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Additional comments"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo report URLs"
+    },
+    "checklist": {
+      "type": "object",
+      "properties": {
+        "rfid_check": {
+          "type": "boolean"
+        },
+        "bi_kit_check": {
+          "type": "boolean"
+        },
+        "connection_check": {
+          "type": "boolean"
+        },
+        "module_check": {
+          "type": "boolean"
+        },
+        "cabinet_check": {
+          "type": "boolean"
+        },
+        "power_check": {
+          "type": "boolean"
+        },
+        "data_transfer_check": {
+          "type": "boolean"
+        },
+        "photo_done": {
+          "type": "boolean"
+        },
+        "briefing_done": {
+          "type": "boolean"
+        }
+      },
+      "description": "Work checklist"
+    }
+  },
+  "required": [
+    "trip_date",
+    "crew_number",
+    "employee_name"
+  ]
+}

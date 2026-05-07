@@ -5,12 +5,23 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+
+import AppLayout from '@/components/layout/AppLayout';
+import AdminLayout from '@/components/layout/AdminLayout';
+import Crews from '@/pages/Crews';
+import CrewView from '@/pages/CrewView';
+import Trips from '@/pages/Trips';
+import TripForm from '@/pages/TripForm';
+import Instructions from '@/pages/Instructions';
+import Profile from '@/pages/Profile';
+import AdminCrews from '@/pages/admin/AdminCrews';
+import AdminTrips from '@/pages/admin/AdminTrips';
+import AdminInstructions from '@/pages/admin/AdminInstructions';
+import AdminUsers from '@/pages/admin/AdminUsers';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -19,29 +30,37 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
   }
 
-  // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Crews />} />
+        <Route path="/crew/:id" element={<CrewView />} />
+        <Route path="/trips" element={<Trips />} />
+        <Route path="/trips/:id" element={<TripForm />} />
+        <Route path="/instructions" element={<Instructions />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
+      <Route element={<AdminLayout />}>
+        <Route path="/admin" element={<AdminCrews />} />
+        <Route path="/admin/trips" element={<AdminTrips />} />
+        <Route path="/admin/instructions" element={<AdminInstructions />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>

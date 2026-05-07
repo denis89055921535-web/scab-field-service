@@ -1,0 +1,26 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "engineer"
+      ],
+      "default": "engineer"
+    },
+    "position": {
+      "type": "string",
+      "description": "Job position"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "department": {
+      "type": "string",
+      "description": "Department"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "name": "DrillingCrew",
+  "type": "object",
+  "properties": {
+    "photo_url": {
+      "type": "string",
+      "description": "Photo of the drilling unit"
+    },
+    "drill_type": {
+      "type": "string",
+      "description": "Type of drilling unit (e.g. ZJ-50)"
+    },
+    "crew_number": {
+      "type": "string",
+      "description": "Crew number"
+    },
+    "field_name": {
+      "type": "string",
+      "description": "Oil field name"
+    },
+    "bi_kits_count": {
+      "type": "number",
+      "description": "Number of BI kits"
+    },
+    "has_internet": {
+      "type": "boolean",
+      "description": "Internet availability"
+    },
+    "module_type": {
+      "type": "string",
+      "description": "ARBI module type"
+    },
+    "cabinet_type": {
+      "type": "string",
+      "description": "Cabinet type"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_work",
+        "needs_trip",
+        "maintenance",
+        "waiting_parts",
+        "inactive"
+      ],
+      "description": "Current status"
+    }
+  },
+  "required": [
+    "crew_number",
+    "status"
+  ]
+}
