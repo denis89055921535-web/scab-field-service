@@ -15,7 +15,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { crewStatuses } from '@/lib/statusConfig';
 
 const emptyForm = {
-  crew_number: '', drill_type: '', field_name: '', bi_kits_count: '', 
+  crew_number: '', drill_type: '', field_name: '', bi_kits_numbers: '', 
   has_internet: false, module_type: '', cabinet_type: '', status: 'in_work', photo_url: ''
 };
 
@@ -32,7 +32,7 @@ export default function AdminCrews() {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      const payload = { ...data, bi_kits_count: data.bi_kits_count ? Number(data.bi_kits_count) : undefined };
+      const payload = { ...data };
       if (editId) return base44.entities.DrillingCrew.update(editId, payload);
       return base44.entities.DrillingCrew.create(payload);
     },
@@ -56,7 +56,7 @@ export default function AdminCrews() {
       crew_number: crew.crew_number || '',
       drill_type: crew.drill_type || '',
       field_name: crew.field_name || '',
-      bi_kits_count: crew.bi_kits_count?.toString() || '',
+      bi_kits_numbers: crew.bi_kits_numbers || '',
       has_internet: !!crew.has_internet,
       module_type: crew.module_type || '',
       cabinet_type: crew.cabinet_type || '',
@@ -109,8 +109,8 @@ export default function AdminCrews() {
                 <Input value={form.field_name} onChange={e => setForm({ ...form, field_name: e.target.value })} />
               </div>
               <div>
-                <Label className="text-xs">Комплекты БИ</Label>
-                <Input type="number" value={form.bi_kits_count} onChange={e => setForm({ ...form, bi_kits_count: e.target.value })} />
+                <Label className="text-xs">Номера комплектов БИ</Label>
+                <Input value={form.bi_kits_numbers} onChange={e => setForm({ ...form, bi_kits_numbers: e.target.value })} placeholder="например: БИ-001, БИ-002" />
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Интернет</Label>
@@ -175,7 +175,7 @@ export default function AdminCrews() {
                   <TableCell className="font-medium">{crew.crew_number}</TableCell>
                   <TableCell>{crew.drill_type || '—'}</TableCell>
                   <TableCell>{crew.field_name || '—'}</TableCell>
-                  <TableCell>{crew.bi_kits_count ?? '—'}</TableCell>
+                  <TableCell>{crew.bi_kits_numbers || '—'}</TableCell>
                   <TableCell><StatusBadge statusMap={crewStatuses} status={crew.status} /></TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(crew)}>

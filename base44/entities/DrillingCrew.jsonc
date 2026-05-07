@@ -18,9 +18,9 @@
       "type": "string",
       "description": "Oil field name"
     },
-    "bi_kits_count": {
-      "type": "number",
-      "description": "Number of BI kits"
+    "bi_kits_numbers": {
+      "type": "string",
+      "description": "BI kit numbers (free text)"
     },
     "has_internet": {
       "type": "boolean",
