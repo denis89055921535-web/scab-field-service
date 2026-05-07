@@ -32,7 +32,7 @@ export default function CrewDetail({ crew }) {
         <CardContent className="p-4 space-y-3">
           <InfoRow icon={MapPin} label="Месторождение" value={crew.field_name || '—'} />
           <InfoRow icon={Box} label="Тип БУ" value={crew.drill_type || '—'} />
-          <InfoRow icon={Layers} label="Комплекты БИ" value={crew.bi_kits_count ? `${crew.bi_kits_count} комплект(а)` : '—'} />
+          <InfoRow icon={Layers} label="Комплекты БИ" value={crew.bi_kits_numbers || '—'} />
           <InfoRow 
             icon={crew.has_internet ? Wifi : WifiOff} 
             label="Интернет" 
