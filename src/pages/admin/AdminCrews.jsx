@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Camera, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Camera, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import StatusBadge from '@/components/common/StatusBadge';
 import { crewStatuses } from '@/lib/statusConfig';
@@ -25,6 +25,7 @@ export default function AdminCrews() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
+  const [kits, setKits] = useState(['', '']);
 
 
   const { data: crews = [], isLoading } = useQuery({
@@ -65,6 +66,10 @@ export default function AdminCrews() {
       status: crew.status || 'in_work',
       photo_url: crew.photo_url || '',
     });
+    const parsed = crew.bi_kits_numbers
+      ? crew.bi_kits_numbers.split(',').map(s => s.trim())
+      : ['', ''];
+    setKits(parsed.length >= 2 ? parsed : [...parsed, ...Array(2 - parsed.length).fill('')]);
     setEditId(crew.id);
     setOpen(true);
   };
@@ -73,6 +78,12 @@ export default function AdminCrews() {
     setOpen(false);
     setForm(emptyForm);
     setEditId(null);
+    setKits(['', '']);
+  };
+
+  const updateKits = (newKits) => {
+    setKits(newKits);
+    setForm(f => ({ ...f, bi_kits_numbers: newKits.filter(Boolean).join(', ') }));
   };
 
   const handlePhotoUpload = async (e) => {
@@ -112,7 +123,29 @@ export default function AdminCrews() {
               </div>
               <div>
                 <Label className="text-xs">Номера комплектов БИ</Label>
-                <Input value={form.bi_kits_numbers} onChange={e => setForm({ ...form, bi_kits_numbers: e.target.value })} placeholder="например: БИ-001, БИ-002" />
+                <div className="space-y-2 mt-1">
+                  {kits.map((kit, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <Input
+                        value={kit}
+                        onChange={e => {
+                          const updated = [...kits];
+                          updated[idx] = e.target.value;
+                          updateKits(updated);
+                        }}
+                        placeholder={`Комплект ${idx + 1}`}
+                      />
+                      {kits.length > 2 && (
+                        <Button type="button" size="icon" variant="outline" onClick={() => updateKits(kits.filter((_, i) => i !== idx))}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button type="button" size="sm" variant="outline" onClick={() => updateKits([...kits, ''])}>
+                    <Plus className="w-4 h-4 mr-1" /> Добавить комплект
+                  </Button>
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Интернет</Label>
