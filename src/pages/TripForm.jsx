@@ -13,7 +13,7 @@ import { Camera, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import { tripStatuses, checklistItems } from '@/lib/statusConfig';
-import BiKitsInput from '@/components/common/BiKitsInput';
+
 
 export default function TripForm() {
   const navigate = useNavigate();
@@ -180,7 +180,7 @@ export default function TripForm() {
 
         <div>
           <Label className="text-xs">Комплекты БИ</Label>
-          <BiKitsInput value={form.bi_kits_numbers} onChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))} />
+          <Input value={form.bi_kits_numbers} onChange={e => setForm(f => ({ ...f, bi_kits_numbers: e.target.value }))} placeholder="например: БИ-001, БИ-002" />
         </div>
 
         <div>

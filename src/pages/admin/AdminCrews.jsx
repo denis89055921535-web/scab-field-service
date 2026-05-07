@@ -13,7 +13,7 @@ import { Plus, Pencil, Trash2, Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import StatusBadge from '@/components/common/StatusBadge';
 import { crewStatuses } from '@/lib/statusConfig';
-import BiKitsInput from '@/components/common/BiKitsInput';
+
 
 const emptyForm = {
   crew_number: '', drill_type: '', field_name: '', bi_kits_numbers: '', 
@@ -111,7 +111,7 @@ export default function AdminCrews() {
               </div>
               <div>
                 <Label className="text-xs">Номера комплектов БИ</Label>
-                <BiKitsInput value={form.bi_kits_numbers} onChange={v => setForm({ ...form, bi_kits_numbers: v })} />
+                <Input value={form.bi_kits_numbers} onChange={e => setForm({ ...form, bi_kits_numbers: e.target.value })} placeholder="например: БИ-001, БИ-002" />
               </div>
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Интернет</Label>
