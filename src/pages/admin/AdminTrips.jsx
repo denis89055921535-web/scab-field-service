@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
@@ -11,16 +12,33 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { tripStatuses, checklistItems } from '@/lib/statusConfig';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Circle } from 'lucide-react';
+import { CheckCircle2, Circle, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AdminTrips() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+  }, []);
+
+  const isAdmin = currentUser?.role === 'admin';
 
   const { data: trips = [] } = useQuery({
     queryKey: ['trips'],
     queryFn: () => base44.entities.TripLog.list('-trip_date'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.TripLog.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      toast.success('Выезд удалён');
+    },
   });
 
   const filtered = trips.filter(t => {
@@ -65,6 +83,7 @@ export default function AdminTrips() {
                 <TableHead>Сотрудник</TableHead>
                 <TableHead>Месторождение</TableHead>
                 <TableHead>Статус</TableHead>
+                {isAdmin && <TableHead />}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -77,7 +96,19 @@ export default function AdminTrips() {
                   <TableCell>{trip.employee_name || '—'}</TableCell>
                   <TableCell>{trip.field_name || '—'}</TableCell>
                   <TableCell><StatusBadge statusMap={tripStatuses} status={trip.status} /></TableCell>
-                </TableRow>
+                  {isAdmin && (
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={e => { e.stopPropagation(); deleteMutation.mutate(trip.id); }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </TableCell>
+                  )}
+                  </TableRow>
               ))}
             </TableBody>
           </Table>
