@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -126,14 +127,16 @@ export default function AdminCrews() {
                 <div className="space-y-2 mt-1">
                   {kits.map((kit, idx) => (
                     <div key={idx} className="flex gap-2">
-                      <Input
+                      <Textarea
                         value={kit}
+                        rows={2}
                         onChange={e => {
                           const updated = [...kits];
                           updated[idx] = e.target.value;
                           updateKits(updated);
                         }}
                         placeholder={`Комплект ${idx + 1}`}
+                        className="resize-none"
                       />
                       {kits.length > 2 && (
                         <Button type="button" size="icon" variant="outline" onClick={() => updateKits(kits.filter((_, i) => i !== idx))}>
