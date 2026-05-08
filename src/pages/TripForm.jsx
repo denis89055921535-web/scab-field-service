@@ -179,36 +179,23 @@ export default function TripForm() {
         </div>
 
         <div>
-          <Label className="text-xs">Комплекты БИ</Label>
+          <Label className="text-xs">Комплект БИ</Label>
           {(() => {
             const crew = crews.find(c => c.crew_number === form.crew_number);
             const availableKits = crew?.bi_kits_numbers
-              ? crew.bi_kits_numbers.split(',').map(s => s.trim()).filter(Boolean)
+              ? crew.bi_kits_numbers.split('\n').map(s => s.trim()).filter(Boolean)
               : [];
-            const selectedKits = form.bi_kits_numbers
-              ? form.bi_kits_numbers.split(',').map(s => s.trim()).filter(Boolean)
-              : [];
-
-            const toggleKit = (kit) => {
-              const updated = selectedKits.includes(kit)
-                ? selectedKits.filter(k => k !== kit)
-                : [...selectedKits, kit];
-              setForm(f => ({ ...f, bi_kits_numbers: updated.join(', ') }));
-            };
 
             if (availableKits.length > 0) {
               return (
-                <div className="space-y-2 mt-1">
-                  {availableKits.map(kit => (
-                    <label key={kit} className="flex items-center gap-3 cursor-pointer p-2 rounded-md border border-border hover:bg-muted transition-colors">
-                      <Checkbox
-                        checked={selectedKits.includes(kit)}
-                        onCheckedChange={() => toggleKit(kit)}
-                      />
-                      <span className="text-sm">{kit}</span>
-                    </label>
-                  ))}
-                </div>
+                <Select value={form.bi_kits_numbers} onValueChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
+                  <SelectContent>
+                    {availableKits.map(kit => (
+                      <SelectItem key={kit} value={kit}>{kit}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               );
             }
             return (

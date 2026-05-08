@@ -68,7 +68,7 @@ export default function AdminCrews() {
       photo_url: crew.photo_url || '',
     });
     const parsed = crew.bi_kits_numbers
-      ? crew.bi_kits_numbers.split(',').map(s => s.trim())
+      ? crew.bi_kits_numbers.split('\n').map(s => s.trim()).filter(s => s !== '')
       : ['', ''];
     setKits(parsed.length >= 2 ? parsed : [...parsed, ...Array(2 - parsed.length).fill('')]);
     setEditId(crew.id);
@@ -84,7 +84,7 @@ export default function AdminCrews() {
 
   const updateKits = (newKits) => {
     setKits(newKits);
-    setForm(f => ({ ...f, bi_kits_numbers: newKits.filter(Boolean).join(', ') }));
+    setForm(f => ({ ...f, bi_kits_numbers: newKits.filter(Boolean).join('\n') }));
   };
 
   const handlePhotoUpload = async (e) => {
