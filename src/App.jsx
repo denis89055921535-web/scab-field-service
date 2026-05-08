@@ -19,6 +19,7 @@ import AdminTrips from '@/pages/admin/AdminTrips';
 import AdminInstructions from '@/pages/admin/AdminInstructions';
 import AdminUsers from '@/pages/admin/AdminUsers';
 import AdminWarehouse from '@/pages/admin/AdminWarehouse';
+import Warehouse from '@/pages/Warehouse';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -47,6 +48,7 @@ const AuthenticatedApp = () => {
         <Route path="/crew/:id" element={<CrewView />} />
         <Route path="/trips" element={<Trips />} />
         <Route path="/trips/:id" element={<TripForm />} />
+        <Route path="/warehouse" element={<Warehouse />} />
         <Route path="/instructions" element={<Instructions />} />
         <Route path="/profile" element={<Profile />} />
       </Route>

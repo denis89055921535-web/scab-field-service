@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { HardHat, ClipboardList, BookOpen, User } from 'lucide-react';
+import { HardHat, ClipboardList, BookOpen, User, Warehouse } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const tabs = [
   { path: '/', icon: HardHat, label: 'Буровые' },
   { path: '/trips', icon: ClipboardList, label: 'Журнал' },
+  { path: '/warehouse', icon: Warehouse, label: 'Склад' },
   { path: '/instructions', icon: BookOpen, label: 'Инструкции' },
   { path: '/profile', icon: User, label: 'Кабинет' },
 ];
