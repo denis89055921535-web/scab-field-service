@@ -7,12 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Camera, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
-import { tripStatuses, checklistItems } from '@/lib/statusConfig';
+import { tripStatuses } from '@/lib/statusConfig';
+import ChecklistForm from '@/components/trips/ChecklistSection';
 
 
 export default function TripForm() {
@@ -37,6 +37,7 @@ export default function TripForm() {
     comment: '',
     photos: [],
     checklist: {},
+    sections: {},
   });
 
   const { data: crews = [] } = useQuery({
@@ -88,6 +89,7 @@ export default function TripForm() {
         comment: existingTrip.comment || '',
         photos: existingTrip.photos || [],
         checklist: existingTrip.checklist || {},
+        sections: existingTrip.sections || {},
       });
     }
   }, [existingTrip]);
@@ -124,12 +126,6 @@ export default function TripForm() {
     toast.success('Фото загружено');
   };
 
-  const toggleCheck = (key) => {
-    setForm(f => ({
-      ...f,
-      checklist: { ...f.checklist, [key]: !f.checklist[key] },
-    }));
-  };
 
   return (
     <div>
@@ -265,25 +261,13 @@ export default function TripForm() {
           />
         </div>
 
-        <Card>
-          <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-sm">Чек-лист работ</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 space-y-2.5">
-            {checklistItems.map(({ key, label }) => (
-              <label
-                key={key}
-                className="flex items-center gap-3 cursor-pointer"
-              >
-                <Checkbox
-                  checked={!!form.checklist[key]}
-                  onCheckedChange={() => toggleCheck(key)}
-                />
-                <span className="text-sm">{label}</span>
-              </label>
-            ))}
-          </CardContent>
-        </Card>
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Чек-лист полевого сотрудника АРБИ</p>
+          <ChecklistForm
+            value={form.sections}
+            onChange={sections => setForm(f => ({ ...f, sections }))}
+          />
+        </div>
 
         <div>
           <Label className="text-xs">Комментарий</Label>

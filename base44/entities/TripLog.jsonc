@@ -69,36 +69,11 @@
     },
     "checklist": {
       "type": "object",
-      "properties": {
-        "rfid_check": {
-          "type": "boolean"
-        },
-        "bi_kit_check": {
-          "type": "boolean"
-        },
-        "connection_check": {
-          "type": "boolean"
-        },
-        "module_check": {
-          "type": "boolean"
-        },
-        "cabinet_check": {
-          "type": "boolean"
-        },
-        "power_check": {
-          "type": "boolean"
-        },
-        "data_transfer_check": {
-          "type": "boolean"
-        },
-        "photo_done": {
-          "type": "boolean"
-        },
-        "briefing_done": {
-          "type": "boolean"
-        }
-      },
-      "description": "Work checklist"
+      "description": "Legacy checklist"
+    },
+    "sections": {
+      "type": "object",
+      "description": "\u0427\u0435\u043a-\u043b\u0438\u0441\u0442 \u043f\u043e\u043b\u0435\u0432\u043e\u0433\u043e \u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u0430 \u0410\u0420\u0411\u0418 (\u043f\u043e \u0440\u0430\u0437\u0434\u0435\u043b\u0430\u043c)"
     }
   },
   "required": [
