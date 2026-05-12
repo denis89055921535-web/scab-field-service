@@ -5,20 +5,42 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
-import { Plus, Calendar, MapPin, User } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Calendar, MapPin, User, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import PageHeader from '@/components/common/PageHeader';
 import StatusBadge from '@/components/common/StatusBadge';
 import { tripStatuses } from '@/lib/statusConfig';
 
+const workTypeLabels = {
+  maintenance: 'Обслуживание оборуд.',
+  bi_accident: 'Авария БИ',
+  bi_inspection: 'Инспекция БИ',
+  equipment_install: 'Монтаж оборуд.',
+  equipment_uninstall: 'Демонтаж оборуд.',
+};
+
 export default function Trips() {
   const navigate = useNavigate();
+  const [crewFilter, setCrewFilter] = useState('all');
 
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ['trips'],
     queryFn: () => base44.entities.TripLog.list('-trip_date'),
   });
+
+  const { data: crews = [] } = useQuery({
+    queryKey: ['crews'],
+    queryFn: () => base44.entities.DrillingCrew.list(),
+  });
+
+  const filteredTrips = crewFilter === 'all'
+    ? trips
+    : trips.filter(t => t.crew_number === crewFilter);
+
+  // Get unique crew numbers from trips for filter options
+  const crewNumbers = [...new Set(trips.map(t => t.crew_number).filter(Boolean))].sort();
 
   return (
     <div>
@@ -36,12 +58,26 @@ export default function Trips() {
         }
       />
 
-      <div className="px-4 py-3">
+      <div className="px-4 pt-3 pb-2">
+        <Select value={crewFilter} onValueChange={setCrewFilter}>
+          <SelectTrigger className="h-8 text-xs">
+            <SelectValue placeholder="Все бригады" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все бригады</SelectItem>
+            {crewNumbers.map(num => (
+              <SelectItem key={num} value={num}>Бригада №{num}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="px-4 pb-3">
         {isLoading ? (
           <div className="space-y-3">
             {[1,2,3].map(i => <Skeleton key={i} className="h-20 rounded-xl" />)}
           </div>
-        ) : trips.length === 0 ? (
+        ) : filteredTrips.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-sm mb-3">Выездов пока нет</p>
             <Button size="sm" onClick={() => navigate('/trips/new')}>
@@ -50,7 +86,7 @@ export default function Trips() {
           </div>
         ) : (
           <div className="space-y-3">
-            {trips.map(trip => (
+            {filteredTrips.map(trip => (
               <Card
                 key={trip.id}
                 className="p-3 cursor-pointer hover:shadow-md transition-shadow"
@@ -73,6 +109,12 @@ export default function Trips() {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <MapPin className="w-3 h-3" />
                       {trip.field_name}
+                    </div>
+                  )}
+                  {trip.work_type && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Briefcase className="w-3 h-3" />
+                      {workTypeLabels[trip.work_type] || trip.work_type}
                     </div>
                   )}
                 </div>

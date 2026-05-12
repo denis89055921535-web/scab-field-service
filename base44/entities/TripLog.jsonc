@@ -19,6 +19,29 @@
       "type": "string",
       "description": "Oil field name"
     },
+    "work_type": {
+      "type": "string",
+      "enum": [
+        "maintenance",
+        "bi_accident",
+        "bi_inspection",
+        "equipment_install",
+        "equipment_uninstall"
+      ],
+      "description": "\u0422\u0438\u043f \u0440\u0430\u0431\u043e\u0442"
+    },
+    "bi_kits_numbers": {
+      "type": "string",
+      "description": "BI kit numbers"
+    },
+    "module_type": {
+      "type": "string",
+      "description": "ARBI module type"
+    },
+    "cabinet_type": {
+      "type": "string",
+      "description": "Cabinet type"
+    },
     "reason": {
       "type": "string",
       "description": "Reason for trip"

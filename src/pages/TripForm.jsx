@@ -28,6 +28,7 @@ export default function TripForm() {
     employee_name: '',
     crew_number: '',
     field_name: '',
+    work_type: '',
     bi_kits_numbers: '',
     module_type: '',
     cabinet_type: '',
@@ -78,6 +79,7 @@ export default function TripForm() {
         employee_name: existingTrip.employee_name || '',
         crew_number: existingTrip.crew_number || '',
         field_name: existingTrip.field_name || '',
+        work_type: existingTrip.work_type || '',
         bi_kits_numbers: existingTrip.bi_kits_numbers || '',
         module_type: existingTrip.module_type || '',
         cabinet_type: existingTrip.cabinet_type || '',
@@ -178,6 +180,20 @@ export default function TripForm() {
                   №{c.crew_number} — {c.field_name || 'Без месторождения'}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs">Тип работ</Label>
+          <Select value={form.work_type} onValueChange={v => setForm(f => ({ ...f, work_type: v }))}>
+            <SelectTrigger><SelectValue placeholder="Выберите тип работ" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="maintenance">Обслуживание оборуд.</SelectItem>
+              <SelectItem value="bi_accident">Авария БИ</SelectItem>
+              <SelectItem value="bi_inspection">Инспекция БИ</SelectItem>
+              <SelectItem value="equipment_install">Монтаж оборуд.</SelectItem>
+              <SelectItem value="equipment_uninstall">Демонтаж оборуд.</SelectItem>
             </SelectContent>
           </Select>
         </div>
