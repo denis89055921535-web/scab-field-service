@@ -22,10 +22,8 @@ const assetTypes = {
 };
 
 const conditionConfig = {
-  good: { label: 'Исправен', color: 'bg-green-100 text-green-800' },
-  needs_repair: { label: 'Требует ремонта', color: 'bg-yellow-100 text-yellow-800' },
-  broken: { label: 'Неисправен', color: 'bg-red-100 text-red-800' },
-  written_off: { label: 'Списан', color: 'bg-gray-100 text-gray-500' },
+  working: { label: 'В работе', color: 'bg-green-100 text-green-800' },
+  not_working: { label: 'Не в работе', color: 'bg-red-100 text-red-800' },
 };
 
 const locationConfig = {
@@ -35,8 +33,8 @@ const locationConfig = {
 };
 
 const emptyForm = {
-  name: '', asset_type: 'bi_kit', serial_number: '', condition: 'good',
-  location_type: 'warehouse', crew_number: '', notes: '',
+  name: '', asset_type: 'bi_kit', serial_number: '', condition: 'working',
+  location_type: 'warehouse', crew_number: '', notes: '', last_inspection_date: '',
 };
 
 export default function AdminWarehouse() {
@@ -81,10 +79,11 @@ export default function AdminWarehouse() {
       name: asset.name || '',
       asset_type: asset.asset_type || 'bi_kit',
       serial_number: asset.serial_number || '',
-      condition: asset.condition || 'good',
+      condition: asset.condition || 'working',
       location_type: asset.location_type || 'warehouse',
       crew_number: asset.crew_number || '',
       notes: asset.notes || '',
+      last_inspection_date: asset.last_inspection_date || '',
     });
     setEditId(asset.id);
     setOpen(true);
@@ -180,6 +179,10 @@ export default function AdminWarehouse() {
                   </Select>
                 </div>
               )}
+              <div>
+                <Label className="text-xs">Дата последней инспекции</Label>
+                <Input type="date" value={form.last_inspection_date} onChange={e => setForm({ ...form, last_inspection_date: e.target.value })} />
+              </div>
               <div>
                 <Label className="text-xs">Примечания</Label>
                 <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="resize-none" />
