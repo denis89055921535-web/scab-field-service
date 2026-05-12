@@ -29,6 +29,8 @@ export default function TripForm() {
     crew_number: '',
     field_name: '',
     bi_kits_numbers: '',
+    module_type: '',
+    cabinet_type: '',
     reason: '',
     status: 'planned',
     comment: '',
@@ -40,6 +42,15 @@ export default function TripForm() {
     queryKey: ['crews'],
     queryFn: () => base44.entities.DrillingCrew.list(),
   });
+
+  const { data: assets = [] } = useQuery({
+    queryKey: ['assets'],
+    queryFn: () => base44.entities.Asset.list(),
+  });
+
+  const biKitsFromWarehouse = assets.filter(a => a.asset_type === 'bi_kit').map(a => a.name);
+  const modulesFromWarehouse = assets.filter(a => a.asset_type === 'reader_module').map(a => a.name);
+  const cabinetsFromWarehouse = assets.filter(a => a.asset_type === 'cabinet').map(a => a.name);
 
   const { data: existingTrip } = useQuery({
     queryKey: ['trip', tripId],
@@ -68,6 +79,8 @@ export default function TripForm() {
         crew_number: existingTrip.crew_number || '',
         field_name: existingTrip.field_name || '',
         bi_kits_numbers: existingTrip.bi_kits_numbers || '',
+        module_type: existingTrip.module_type || '',
+        cabinet_type: existingTrip.cabinet_type || '',
         reason: existingTrip.reason || '',
         status: existingTrip.status || 'planned',
         comment: existingTrip.comment || '',
@@ -180,28 +193,50 @@ export default function TripForm() {
 
         <div>
           <Label className="text-xs">Комплект БИ</Label>
-          {(() => {
-            const crew = crews.find(c => c.crew_number === form.crew_number);
-            const availableKits = crew?.bi_kits_numbers
-              ? crew.bi_kits_numbers.split('\n').map(s => s.trim()).filter(Boolean)
-              : [];
+          {biKitsFromWarehouse.length > 0 ? (
+            <Select value={form.bi_kits_numbers} onValueChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))}>
+              <SelectTrigger><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
+              <SelectContent>
+                {biKitsFromWarehouse.map(kit => (
+                  <SelectItem key={kit} value={kit}>{kit}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input value={form.bi_kits_numbers} onChange={e => setForm(f => ({ ...f, bi_kits_numbers: e.target.value }))} placeholder="Номер комплекта БИ" />
+          )}
+        </div>
 
-            if (availableKits.length > 0) {
-              return (
-                <Select value={form.bi_kits_numbers} onValueChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
-                  <SelectContent>
-                    {availableKits.map(kit => (
-                      <SelectItem key={kit} value={kit}>{kit}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              );
-            }
-            return (
-              <Input value={form.bi_kits_numbers} onChange={e => setForm(f => ({ ...f, bi_kits_numbers: e.target.value }))} placeholder="Номер комплекта БИ" />
-            );
-          })()}
+        <div>
+          <Label className="text-xs">Модуль считывания</Label>
+          {modulesFromWarehouse.length > 0 ? (
+            <Select value={form.module_type || ''} onValueChange={v => setForm(f => ({ ...f, module_type: v }))}>
+              <SelectTrigger><SelectValue placeholder="Выберите модуль" /></SelectTrigger>
+              <SelectContent>
+                {modulesFromWarehouse.map(m => (
+                  <SelectItem key={m} value={m}>{m}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input value={form.module_type || ''} onChange={e => setForm(f => ({ ...f, module_type: e.target.value }))} placeholder="Тип модуля" />
+          )}
+        </div>
+
+        <div>
+          <Label className="text-xs">Шкаф</Label>
+          {cabinetsFromWarehouse.length > 0 ? (
+            <Select value={form.cabinet_type || ''} onValueChange={v => setForm(f => ({ ...f, cabinet_type: v }))}>
+              <SelectTrigger><SelectValue placeholder="Выберите шкаф" /></SelectTrigger>
+              <SelectContent>
+                {cabinetsFromWarehouse.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input value={form.cabinet_type || ''} onChange={e => setForm(f => ({ ...f, cabinet_type: e.target.value }))} placeholder="Тип шкафа" />
+          )}
         </div>
 
         <div>

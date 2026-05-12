@@ -34,6 +34,15 @@ export default function AdminCrews() {
     queryFn: () => base44.entities.DrillingCrew.list('-created_date'),
   });
 
+  const { data: assets = [] } = useQuery({
+    queryKey: ['assets'],
+    queryFn: () => base44.entities.Asset.list(),
+  });
+
+  const biKits = assets.filter(a => a.asset_type === 'bi_kit').map(a => a.name);
+  const modules = assets.filter(a => a.asset_type === 'reader_module').map(a => a.name);
+  const cabinets = assets.filter(a => a.asset_type === 'cabinet').map(a => a.name);
+
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       const payload = { ...data };
@@ -127,17 +136,22 @@ export default function AdminCrews() {
                 <div className="space-y-2 mt-1">
                   {kits.map((kit, idx) => (
                     <div key={idx} className="flex gap-2">
-                      <Textarea
-                        value={kit}
-                        rows={2}
-                        onChange={e => {
-                          const updated = [...kits];
-                          updated[idx] = e.target.value;
-                          updateKits(updated);
-                        }}
-                        placeholder={`Комплект ${idx + 1}`}
-                        className="resize-none"
-                      />
+                      {biKits.length > 0 ? (
+                        <Select value={kit} onValueChange={v => { const updated = [...kits]; updated[idx] = v; updateKits(updated); }}>
+                          <SelectTrigger><SelectValue placeholder={`Комплект ${idx + 1}`} /></SelectTrigger>
+                          <SelectContent>
+                            {biKits.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Textarea
+                          value={kit}
+                          rows={2}
+                          onChange={e => { const updated = [...kits]; updated[idx] = e.target.value; updateKits(updated); }}
+                          placeholder={`Комплект ${idx + 1}`}
+                          className="resize-none"
+                        />
+                      )}
                       {kits.length > 2 && (
                         <Button type="button" size="icon" variant="outline" onClick={() => updateKits(kits.filter((_, i) => i !== idx))}>
                           <X className="w-4 h-4" />
@@ -156,11 +170,29 @@ export default function AdminCrews() {
               </div>
               <div>
                 <Label className="text-xs">Тип модуля</Label>
-                <Input value={form.module_type} onChange={e => setForm({ ...form, module_type: e.target.value })} placeholder="например АРБИ-М" />
+                {modules.length > 0 ? (
+                  <Select value={form.module_type} onValueChange={v => setForm({ ...form, module_type: v })}>
+                    <SelectTrigger><SelectValue placeholder="Выберите модуль" /></SelectTrigger>
+                    <SelectContent>
+                      {modules.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input value={form.module_type} onChange={e => setForm({ ...form, module_type: e.target.value })} placeholder="например АРБИ-М" />
+                )}
               </div>
               <div>
                 <Label className="text-xs">Тип шкафов</Label>
-                <Input value={form.cabinet_type} onChange={e => setForm({ ...form, cabinet_type: e.target.value })} />
+                {cabinets.length > 0 ? (
+                  <Select value={form.cabinet_type} onValueChange={v => setForm({ ...form, cabinet_type: v })}>
+                    <SelectTrigger><SelectValue placeholder="Выберите шкаф" /></SelectTrigger>
+                    <SelectContent>
+                      {cabinets.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input value={form.cabinet_type} onChange={e => setForm({ ...form, cabinet_type: e.target.value })} />
+                )}
               </div>
               <div>
                 <Label className="text-xs">Статус</Label>
