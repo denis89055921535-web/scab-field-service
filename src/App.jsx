@@ -19,6 +19,8 @@ import AdminTrips from '@/pages/admin/AdminTrips';
 import AdminInstructions from '@/pages/admin/AdminInstructions';
 import AdminUsers from '@/pages/admin/AdminUsers';
 import AdminWarehouse from '@/pages/admin/AdminWarehouse';
+import AdminIncidents from '@/pages/admin/AdminIncidents';
+import Incidents from '@/pages/Incidents';
 import Warehouse from '@/pages/Warehouse';
 
 const AuthenticatedApp = () => {
@@ -49,6 +51,7 @@ const AuthenticatedApp = () => {
         <Route path="/trips" element={<Trips />} />
         <Route path="/trips/:id" element={<TripForm />} />
         <Route path="/warehouse" element={<Warehouse />} />
+        <Route path="/incidents" element={<Incidents />} />
         <Route path="/instructions" element={<Instructions />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
@@ -57,6 +60,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/trips" element={<AdminTrips />} />
         <Route path="/admin/instructions" element={<AdminInstructions />} />
         <Route path="/admin/warehouse" element={<AdminWarehouse />} />
+        <Route path="/admin/incidents" element={<AdminIncidents />} />
         <Route path="/admin/users" element={<AdminUsers />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

@@ -1,12 +1,12 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { HardHat, ClipboardList, BookOpen, Users, ChevronLeft, Shield, Warehouse } from 'lucide-react';
+import { HardHat, ClipboardList, BookOpen, Users, ChevronLeft, Shield, Warehouse, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const adminLinks = [
   { path: '/admin', icon: HardHat, label: 'Буровые бригады', exact: true },
   { path: '/admin/trips', icon: ClipboardList, label: 'Журнал выездов' },
   { path: '/admin/warehouse', icon: Warehouse, label: 'Склад' },
-  { path: '/admin/instructions', icon: BookOpen, label: 'Инструкции' },
+  { path: '/admin/incidents', icon: AlertTriangle, label: 'Аварии' },
   { path: '/admin/users', icon: Users, label: 'Пользователи' },
 ];
 
