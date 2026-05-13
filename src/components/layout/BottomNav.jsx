@@ -13,6 +13,10 @@ const tabs = [
 export default function BottomNav() {
   const location = useLocation();
 
+  // Hide bottom nav on trip form pages so action buttons are visible
+  const isTripForm = location.pathname.startsWith('/trips/');
+  if (isTripForm) return null;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-area-bottom">
       <div className="max-w-lg mx-auto flex">

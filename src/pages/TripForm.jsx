@@ -340,7 +340,7 @@ export default function TripForm() {
       </div>
 
       {/* Фиксированные кнопки снизу */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border px-4 py-3 flex gap-2">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-t border-border px-4 py-3 flex gap-2 max-w-lg mx-auto">
         <Button
           variant="outline"
           className="flex-1 h-11"
