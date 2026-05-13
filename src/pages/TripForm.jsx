@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Send, Loader2, Camera, X, FileDown, Mail } from 'lucide-react';
+import { Save, Send, Loader2, Camera, X, FileDown, Mail, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import ChecklistForm, { isChecklistComplete } from '@/components/trips/ChecklistSection';
@@ -30,6 +30,7 @@ const EMPTY_FORM = {
   drill_type: '',
   work_type: '',
   bi_kits_numbers: '',
+  bi_kits_list: [''],
   module_type: '',
   cabinet_type: '',
   reason: '',
@@ -85,12 +86,18 @@ export default function TripForm() {
 
   useEffect(() => {
     if (existingTrip) {
+      const biList = existingTrip.bi_kits_list?.length
+        ? existingTrip.bi_kits_list
+        : existingTrip.bi_kits_numbers
+          ? existingTrip.bi_kits_numbers.split(',').map(s => s.trim()).filter(Boolean)
+          : [''];
       setForm({
         ...EMPTY_FORM,
         ...existingTrip,
         photos: existingTrip.photos || [],
         sections: existingTrip.sections || {},
         checklist: existingTrip.checklist || {},
+        bi_kits_list: biList,
       });
     }
   }, [existingTrip]);
@@ -109,13 +116,37 @@ export default function TripForm() {
 
   const handleCrewSelect = (crewNumber) => {
     const crew = crews.find(c => c.crew_number === crewNumber);
+    const biList = crew?.bi_kits_numbers
+      ? crew.bi_kits_numbers.split(',').map(s => s.trim()).filter(Boolean)
+      : [''];
     setForm(f => ({
       ...f,
       crew_number: crewNumber,
       field_name: crew?.field_name || f.field_name,
       drill_type: crew?.drill_type || f.drill_type,
       bi_kits_numbers: crew?.bi_kits_numbers || f.bi_kits_numbers,
+      bi_kits_list: biList,
     }));
+  };
+
+  const updateBiKit = (idx, value) => {
+    setForm(f => {
+      const list = [...(f.bi_kits_list || [''])];
+      list[idx] = value;
+      return { ...f, bi_kits_list: list, bi_kits_numbers: list.filter(Boolean).join(', ') };
+    });
+  };
+
+  const addBiKit = () => {
+    setForm(f => ({ ...f, bi_kits_list: [...(f.bi_kits_list || ['']), ''] }));
+  };
+
+  const removeBiKit = (idx) => {
+    setForm(f => {
+      const list = (f.bi_kits_list || ['']).filter((_, i) => i !== idx);
+      const final = list.length ? list : [''];
+      return { ...f, bi_kits_list: final, bi_kits_numbers: final.filter(Boolean).join(', ') };
+    });
   };
 
   const handlePhotoUpload = async (e) => {
@@ -272,19 +303,40 @@ export default function TripForm() {
         </div>
 
         <div>
-          <Label className="text-xs">Комплект БИ</Label>
-          {biKitsFromWarehouse.length > 0 ? (
-            <Select value={form.bi_kits_numbers} onValueChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))}>
-              <SelectTrigger><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
-              <SelectContent>
-                {biKitsFromWarehouse.map(kit => (
-                  <SelectItem key={kit} value={kit}>{kit}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Input value={form.bi_kits_numbers} onChange={e => setForm(f => ({ ...f, bi_kits_numbers: e.target.value }))} placeholder="Номер комплекта БИ" />
-          )}
+          <div className="flex items-center justify-between mb-1">
+            <Label className="text-xs">Комплект БИ</Label>
+            <button type="button" onClick={addBiKit} className="flex items-center gap-1 text-xs text-primary hover:underline">
+              <Plus className="w-3 h-3" /> Добавить
+            </button>
+          </div>
+          <div className="space-y-2">
+            {(form.bi_kits_list || ['']).map((kit, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                {biKitsFromWarehouse.length > 0 ? (
+                  <Select value={kit} onValueChange={v => updateBiKit(idx, v)}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
+                    <SelectContent>
+                      {biKitsFromWarehouse.map(k => (
+                        <SelectItem key={k} value={k}>{k}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    className="flex-1"
+                    value={kit}
+                    onChange={e => updateBiKit(idx, e.target.value)}
+                    placeholder="Номер комплекта БИ"
+                  />
+                )}
+                {(form.bi_kits_list || ['']).length > 1 && (
+                  <button type="button" onClick={() => removeBiKit(idx)} className="text-destructive hover:opacity-70">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div>
