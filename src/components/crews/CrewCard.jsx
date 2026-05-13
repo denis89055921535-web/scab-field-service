@@ -41,6 +41,12 @@ export default function CrewCard({ crew, onClick }) {
             </p>
           )}
 
+          {crew.project_name && (
+            <p className="text-xs text-muted-foreground truncate">
+              Проект: {crew.project_name}
+            </p>
+          )}
+
           {crew.drill_type && (
             <p className="text-xs text-muted-foreground truncate">
               Тип БУ: {crew.drill_type}

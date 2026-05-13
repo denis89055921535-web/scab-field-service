@@ -17,7 +17,7 @@ import { crewStatuses } from '@/lib/statusConfig';
 
 
 const emptyForm = {
-  crew_number: '', drill_type: '', field_name: '', bi_kits_numbers: '', 
+  crew_number: '', drill_type: '', field_name: '', project_name: '', bi_kits_numbers: '', 
   has_internet: false, module_type: '', cabinet_type: '', status: 'in_work', photo_url: ''
 };
 
@@ -69,6 +69,7 @@ export default function AdminCrews() {
       crew_number: crew.crew_number || '',
       drill_type: crew.drill_type || '',
       field_name: crew.field_name || '',
+      project_name: crew.project_name || '',
       bi_kits_numbers: crew.bi_kits_numbers || '',
       has_internet: !!crew.has_internet,
       module_type: crew.module_type || '',
@@ -130,6 +131,10 @@ export default function AdminCrews() {
               <div>
                 <Label className="text-xs">Месторождение</Label>
                 <Input value={form.field_name} onChange={e => setForm({ ...form, field_name: e.target.value })} />
+              </div>
+              <div>
+                <Label className="text-xs">Наименование проекта</Label>
+                <Input value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} placeholder="Название проекта" />
               </div>
               <div>
                 <Label className="text-xs">Номера комплектов БИ</Label>
