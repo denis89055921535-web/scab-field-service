@@ -398,6 +398,7 @@ export default function TripForm() {
           disabled={saveMutation.isPending || sending}
         >
           {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Сохранить
         </Button>
 
         <Button
@@ -407,7 +408,7 @@ export default function TripForm() {
           title={!checklistDone ? 'Заполните все пункты чек-листа' : ''}
         >
           {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-          Отправить отчёт
+          Отправить
         </Button>
 
         <Button
