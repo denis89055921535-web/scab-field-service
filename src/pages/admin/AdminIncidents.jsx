@@ -9,9 +9,10 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Camera, Loader2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Camera, Loader2, X, Save, Mail, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { exportIncidentToExcel, sendIncidentByEmail } from '@/lib/incidentExport';
 
 const emptyForm = {
   incident_date: '',
@@ -31,6 +32,9 @@ export default function AdminIncidents() {
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [reportEmail, setReportEmail] = useState(() => localStorage.getItem('incident_report_email') || '');
+  const [emailEditing, setEmailEditing] = useState(false);
 
   const { data: incidents = [], isLoading } = useQuery({
     queryKey: ['incidents'],
@@ -105,6 +109,22 @@ export default function AdminIncidents() {
     setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
   };
 
+  const handleSave = () => saveMutation.mutate(form);
+
+  const handleSend = async () => {
+    if (!reportEmail) { toast.error('Укажите email для отправки'); return; }
+    setSending(true);
+    try {
+      await sendIncidentByEmail(form, reportEmail);
+      toast.success('Отчёт отправлен на ' + reportEmail);
+    } catch {
+      toast.error('Ошибка отправки');
+    }
+    setSending(false);
+  };
+
+  const handleExcel = () => exportIncidentToExcel(form);
+
   const IncidentForm = () => (
     <div className="space-y-3 mt-2">
       <div>
@@ -177,10 +197,35 @@ export default function AdminIncidents() {
         <Label className="text-xs">Комментарий</Label>
         <Textarea value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} placeholder="Опишите ситуацию..." rows={3} />
       </div>
-      <Button className="w-full" onClick={() => saveMutation.mutate(form)} disabled={saveMutation.isPending || !form.incident_date || !form.object_name}>
-        {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-        {editId ? 'Сохранить' : 'Добавить'}
-      </Button>
+      {/* 3 кнопки */}
+      <div className="flex gap-2 pt-1">
+        <Button
+          variant="outline"
+          className="h-11 px-3"
+          onClick={handleSave}
+          disabled={saveMutation.isPending || !form.incident_date || !form.object_name}
+          title="Сохранить"
+        >
+          {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        </Button>
+        <Button
+          className="flex-1 h-11"
+          onClick={handleSend}
+          disabled={sending || !form.incident_date || !form.object_name}
+        >
+          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+          Отправить отчёт
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 h-11"
+          onClick={handleExcel}
+          title="Скачать Excel"
+        >
+          <FileDown className="w-4 h-4" />
+          Excel
+        </Button>
+      </div>
     </div>
   );
 
@@ -201,6 +246,30 @@ export default function AdminIncidents() {
             <IncidentForm />
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* Настройка email для отправки */}
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">Email для отчётов:</span>
+        {emailEditing ? (
+          <>
+            <Input
+              className="h-8 text-sm"
+              value={reportEmail}
+              onChange={e => setReportEmail(e.target.value)}
+              placeholder="example@mail.com"
+              type="email"
+            />
+            <Button size="sm" className="h-8" onClick={() => { localStorage.setItem('incident_report_email', reportEmail); setEmailEditing(false); toast.success('Email сохранён'); }}>
+              Сохранить
+            </Button>
+          </>
+        ) : (
+          <>
+            <span className="text-sm font-medium">{reportEmail || <span className="text-muted-foreground">не указан</span>}</span>
+            <Button size="sm" variant="outline" className="h-8" onClick={() => setEmailEditing(true)}>Изменить</Button>
+          </>
+        )}
       </div>
 
       <Card>
