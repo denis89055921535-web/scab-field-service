@@ -13,6 +13,7 @@ import { Trash2, ChevronDown, ChevronRight, CheckCircle2, XCircle, MinusCircle, 
 import { toast } from 'sonner';
 import { CHECKLIST_SECTIONS } from '@/components/trips/ChecklistSection';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 const TRIP_STATUSES = {
   draft: { label: 'Черновик', color: 'bg-slate-100 text-slate-600' },
@@ -91,8 +92,6 @@ function ChecklistPreview({ sections = {} }) {
     </div>
   );
 }
-
-import { cn } from '@/lib/utils';
 
 export default function AdminTrips() {
   const [filters, setFilters] = useState({ status: 'all', search: '', crew: 'all', field: 'all', dateFrom: '', dateTo: '' });
