@@ -7,12 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Send, Loader2, Camera, X, FileDown, Mail, Plus, Trash2 } from 'lucide-react';
+import { Save, Loader2, Camera, X, FileDown, Mail, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import ChecklistForm, { isChecklistComplete } from '@/components/trips/ChecklistSection';
-import { exportToExcel, exportToPDF, sendReportByEmail } from '@/lib/tripExport';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { exportToExcel, sendReportByEmail } from '@/lib/tripExport';
 
 const TRIP_STATUSES = {
   draft: 'Черновик',
@@ -205,7 +204,6 @@ export default function TripForm() {
   };
 
   const handleExportExcel = () => exportToExcel(form);
-  const handleExportPDF = () => exportToPDF(form);
 
   return (
     <div className="pb-28">
@@ -413,21 +411,15 @@ export default function TripForm() {
           Отправить отчёт
         </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-11 px-3" title="Выгрузить отчёт">
-              <FileDown className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleExportExcel}>
-              Скачать Excel (.xlsx)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleExportPDF}>
-              Скачать PDF
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="outline"
+          className="flex-1 h-11"
+          onClick={handleExportExcel}
+          title="Скачать Excel"
+        >
+          <FileDown className="w-4 h-4" />
+          Excel
+        </Button>
       </div>
     </div>
   );
