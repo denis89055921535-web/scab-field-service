@@ -130,7 +130,7 @@ export default function Incidents() {
                 <Label className="text-xs">Объект *</Label>
                 {objectNames.length > 0 ? (
                   <Select value={form.object_name} onValueChange={v => setForm({ ...form, object_name: v })}>
-                    <SelectTrigger><SelectValue placeholder="Выберите объект" /></SelectTrigger>
+                    <SelectTrigger className="h-auto min-h-9 whitespace-normal [&>span]:whitespace-normal [&>span]:line-clamp-none"><SelectValue placeholder="Выберите объект" /></SelectTrigger>
                     <SelectContent>
                       {objectNames.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
                     </SelectContent>
