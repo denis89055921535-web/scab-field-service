@@ -5,19 +5,27 @@
     "trip_date": {
       "type": "string",
       "format": "date",
-      "description": "Date of the trip"
+      "description": "\u0414\u0430\u0442\u0430 \u0432\u044b\u0435\u0437\u0434\u0430"
     },
     "employee_name": {
       "type": "string",
-      "description": "Employee full name"
+      "description": "\u0424\u0418\u041e \u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u0430"
+    },
+    "position": {
+      "type": "string",
+      "description": "\u0414\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u044c \u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u0430"
     },
     "crew_number": {
       "type": "string",
-      "description": "Drilling crew number"
+      "description": "\u2116 \u0431\u0443\u0440\u043e\u0432\u043e\u0439 \u0431\u0440\u0438\u0433\u0430\u0434\u044b"
     },
     "field_name": {
       "type": "string",
-      "description": "Oil field name"
+      "description": "\u041c\u0435\u0441\u0442\u043e\u0440\u043e\u0436\u0434\u0435\u043d\u0438\u0435"
+    },
+    "drill_type": {
+      "type": "string",
+      "description": "\u0422\u0438\u043f \u0431\u0443\u0440\u043e\u0432\u043e\u0439 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0438"
     },
     "work_type": {
       "type": "string",
@@ -32,44 +40,45 @@
     },
     "bi_kits_numbers": {
       "type": "string",
-      "description": "BI kit numbers"
+      "description": "\u041a\u043e\u043c\u043f\u043b\u0435\u043a\u0442 \u0411\u0418"
     },
     "module_type": {
       "type": "string",
-      "description": "ARBI module type"
+      "description": "\u041c\u043e\u0434\u0443\u043b\u044c \u0441\u0447\u0438\u0442\u044b\u0432\u0430\u043d\u0438\u044f"
     },
     "cabinet_type": {
       "type": "string",
-      "description": "Cabinet type"
+      "description": "\u0428\u043a\u0430\u0444"
     },
     "reason": {
       "type": "string",
-      "description": "Reason for trip"
+      "description": "\u041f\u0440\u0438\u0447\u0438\u043d\u0430 \u0432\u044b\u0435\u0437\u0434\u0430"
     },
     "status": {
       "type": "string",
       "enum": [
-        "planned",
+        "draft",
         "in_progress",
         "completed",
         "needs_repeat"
       ],
-      "description": "Trip status"
+      "default": "draft",
+      "description": "\u0421\u0442\u0430\u0442\u0443\u0441 \u0432\u044b\u0435\u0437\u0434\u0430"
     },
     "comment": {
       "type": "string",
-      "description": "Additional comments"
+      "description": "\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u043a\u043e\u043c\u043c\u0435\u043d\u0442\u0430\u0440\u0438\u0439"
     },
     "photos": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Photo report URLs"
+      "description": "\u041e\u0431\u0449\u0438\u0439 \u0444\u043e\u0442\u043e\u043e\u0442\u0447\u0451\u0442"
     },
     "checklist": {
       "type": "object",
-      "description": "Legacy checklist"
+      "description": "\u0423\u0441\u0442\u0430\u0440\u0435\u0432\u0448\u0438\u0439 \u0447\u0435\u043a-\u043b\u0438\u0441\u0442"
     },
     "sections": {
       "type": "object",

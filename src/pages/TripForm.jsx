@@ -7,38 +7,47 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Camera, Save, Loader2 } from 'lucide-react';
+import { Save, Send, Loader2, Camera, X } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
-import { tripStatuses } from '@/lib/statusConfig';
-import ChecklistForm from '@/components/trips/ChecklistSection';
+import ChecklistForm, { isChecklistComplete } from '@/components/trips/ChecklistSection';
 
+const TRIP_STATUSES = {
+  draft: 'Черновик',
+  in_progress: 'В работе',
+  completed: 'Завершен',
+  needs_repeat: 'Требуется повторный выезд',
+};
+
+const EMPTY_FORM = {
+  trip_date: new Date().toISOString().split('T')[0],
+  employee_name: '',
+  position: '',
+  crew_number: '',
+  field_name: '',
+  drill_type: '',
+  work_type: '',
+  bi_kits_numbers: '',
+  module_type: '',
+  cabinet_type: '',
+  reason: '',
+  status: 'draft',
+  comment: '',
+  photos: [],
+  checklist: {},
+  sections: {},
+};
 
 export default function TripForm() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const tripId = window.location.pathname.includes('/trips/') 
-    ? window.location.pathname.split('/trips/')[1] 
+  const tripId = window.location.pathname.includes('/trips/')
+    ? window.location.pathname.split('/trips/')[1]
     : null;
   const isNew = tripId === 'new';
 
-  const [form, setForm] = useState({
-    trip_date: new Date().toISOString().split('T')[0],
-    employee_name: '',
-    crew_number: '',
-    field_name: '',
-    work_type: '',
-    bi_kits_numbers: '',
-    module_type: '',
-    cabinet_type: '',
-    reason: '',
-    status: 'planned',
-    comment: '',
-    photos: [],
-    checklist: {},
-    sections: {},
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [showErrors, setShowErrors] = useState(false);
 
   const { data: crews = [] } = useQuery({
     queryKey: ['crews'],
@@ -64,41 +73,28 @@ export default function TripForm() {
   });
 
   useEffect(() => {
-    const loadUser = async () => {
-      const user = await base44.auth.me();
+    base44.auth.me().then(user => {
       if (user && !form.employee_name) {
         setForm(f => ({ ...f, employee_name: user.full_name || '' }));
       }
-    };
-    loadUser();
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
     if (existingTrip) {
       setForm({
-        trip_date: existingTrip.trip_date || '',
-        employee_name: existingTrip.employee_name || '',
-        crew_number: existingTrip.crew_number || '',
-        field_name: existingTrip.field_name || '',
-        work_type: existingTrip.work_type || '',
-        bi_kits_numbers: existingTrip.bi_kits_numbers || '',
-        module_type: existingTrip.module_type || '',
-        cabinet_type: existingTrip.cabinet_type || '',
-        reason: existingTrip.reason || '',
-        status: existingTrip.status || 'planned',
-        comment: existingTrip.comment || '',
+        ...EMPTY_FORM,
+        ...existingTrip,
         photos: existingTrip.photos || [],
-        checklist: existingTrip.checklist || {},
         sections: existingTrip.sections || {},
+        checklist: existingTrip.checklist || {},
       });
     }
   }, [existingTrip]);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      if (isNew) {
-        return base44.entities.TripLog.create(data);
-      }
+      if (isNew) return base44.entities.TripLog.create(data);
       return base44.entities.TripLog.update(tripId, data);
     },
     onSuccess: () => {
@@ -114,6 +110,7 @@ export default function TripForm() {
       ...f,
       crew_number: crewNumber,
       field_name: crew?.field_name || f.field_name,
+      drill_type: crew?.drill_type || f.drill_type,
       bi_kits_numbers: crew?.bi_kits_numbers || f.bi_kits_numbers,
     }));
   };
@@ -126,30 +123,49 @@ export default function TripForm() {
     toast.success('Фото загружено');
   };
 
+  const removePhoto = (idx) => {
+    setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
+  };
+
+  const handleSave = () => {
+    saveMutation.mutate(form);
+  };
+
+  const handleSubmit = () => {
+    if (!isChecklistComplete(form.sections)) {
+      setShowErrors(true);
+      toast.error('Заполните все обязательные поля чек-листа');
+      return;
+    }
+    saveMutation.mutate({ ...form, status: 'completed' });
+  };
+
+  const checklistDone = isChecklistComplete(form.sections);
 
   return (
-    <div>
+    <div className="pb-28">
       <PageHeader
-        title={isNew ? 'Новый выезд' : 'Редактирование'}
+        title={isNew ? 'Новый выезд' : 'Редактирование выезда'}
         backTo="/trips"
       />
 
       <div className="p-4 space-y-4">
+        {/* Основные поля */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label className="text-xs">Дата выезда</Label>
+            <Label className="text-xs">Дата выезда *</Label>
             <Input
               type="date"
               value={form.trip_date}
-              onChange={e => setForm({ ...form, trip_date: e.target.value })}
+              onChange={e => setForm(f => ({ ...f, trip_date: e.target.value }))}
             />
           </div>
           <div>
-            <Label className="text-xs">Статус</Label>
-            <Select value={form.status} onValueChange={v => setForm({ ...form, status: v })}>
+            <Label className="text-xs">Статус выезда</Label>
+            <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {Object.entries(tripStatuses).map(([k, { label }]) => (
+                {Object.entries(TRIP_STATUSES).map(([k, label]) => (
                   <SelectItem key={k} value={k}>{label}</SelectItem>
                 ))}
               </SelectContent>
@@ -158,16 +174,25 @@ export default function TripForm() {
         </div>
 
         <div>
-          <Label className="text-xs">Сотрудник</Label>
+          <Label className="text-xs">ФИО сотрудника *</Label>
           <Input
             value={form.employee_name}
-            onChange={e => setForm({ ...form, employee_name: e.target.value })}
+            onChange={e => setForm(f => ({ ...f, employee_name: e.target.value }))}
             placeholder="ФИО сотрудника"
           />
         </div>
 
         <div>
-          <Label className="text-xs">Буровая бригада</Label>
+          <Label className="text-xs">Должность</Label>
+          <Input
+            value={form.position || ''}
+            onChange={e => setForm(f => ({ ...f, position: e.target.value }))}
+            placeholder="Должность сотрудника"
+          />
+        </div>
+
+        <div>
+          <Label className="text-xs">№ буровой бригады *</Label>
           <Select value={form.crew_number} onValueChange={handleCrewSelect}>
             <SelectTrigger><SelectValue placeholder="Выберите бригаду" /></SelectTrigger>
             <SelectContent>
@@ -178,6 +203,24 @@ export default function TripForm() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs">Месторождение</Label>
+          <Input
+            value={form.field_name}
+            onChange={e => setForm(f => ({ ...f, field_name: e.target.value }))}
+            placeholder="Месторождение"
+          />
+        </div>
+
+        <div>
+          <Label className="text-xs">Тип буровой установки</Label>
+          <Input
+            value={form.drill_type || ''}
+            onChange={e => setForm(f => ({ ...f, drill_type: e.target.value }))}
+            placeholder="Например: ZJ-50"
+          />
         </div>
 
         <div>
@@ -192,15 +235,6 @@ export default function TripForm() {
               <SelectItem value="equipment_uninstall">Демонтаж оборуд.</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        <div>
-          <Label className="text-xs">Месторождение</Label>
-          <Input
-            value={form.field_name}
-            onChange={e => setForm({ ...form, field_name: e.target.value })}
-            placeholder="Месторождение"
-          />
         </div>
 
         <div>
@@ -220,70 +254,38 @@ export default function TripForm() {
         </div>
 
         <div>
-          <Label className="text-xs">Модуль считывания</Label>
-          {modulesFromWarehouse.length > 0 ? (
-            <Select value={form.module_type || ''} onValueChange={v => setForm(f => ({ ...f, module_type: v }))}>
-              <SelectTrigger><SelectValue placeholder="Выберите модуль" /></SelectTrigger>
-              <SelectContent>
-                {modulesFromWarehouse.map(m => (
-                  <SelectItem key={m} value={m}>{m}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Input value={form.module_type || ''} onChange={e => setForm(f => ({ ...f, module_type: e.target.value }))} placeholder="Тип модуля" />
-          )}
-        </div>
-
-        <div>
-          <Label className="text-xs">Шкаф</Label>
-          {cabinetsFromWarehouse.length > 0 ? (
-            <Select value={form.cabinet_type || ''} onValueChange={v => setForm(f => ({ ...f, cabinet_type: v }))}>
-              <SelectTrigger><SelectValue placeholder="Выберите шкаф" /></SelectTrigger>
-              <SelectContent>
-                {cabinetsFromWarehouse.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Input value={form.cabinet_type || ''} onChange={e => setForm(f => ({ ...f, cabinet_type: e.target.value }))} placeholder="Тип шкафа" />
-          )}
-        </div>
-
-        <div>
           <Label className="text-xs">Причина выезда</Label>
           <Textarea
             value={form.reason}
-            onChange={e => setForm({ ...form, reason: e.target.value })}
+            onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
             placeholder="Опишите причину выезда..."
-            className="h-20"
+            rows={2}
           />
         </div>
 
+        {/* Чек-лист */}
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Чек-лист полевого сотрудника АРБИ</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+            Чек-лист полевого сотрудника АРБИ
+          </p>
           <ChecklistForm
             value={form.sections}
             onChange={sections => setForm(f => ({ ...f, sections }))}
+            showErrors={showErrors}
           />
         </div>
 
+        {/* Общий фотоотчёт */}
         <div>
-          <Label className="text-xs">Комментарий</Label>
-          <Textarea
-            value={form.comment}
-            onChange={e => setForm({ ...form, comment: e.target.value })}
-            placeholder="Дополнительный комментарий..."
-            className="h-20"
-          />
-        </div>
-
-        <div>
-          <Label className="text-xs mb-2 block">Фотоотчёт</Label>
+          <Label className="text-xs mb-2 block">Общий фотоотчёт</Label>
           <div className="flex gap-2 flex-wrap">
             {form.photos.map((url, i) => (
-              <img key={i} src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
+              <div key={i} className="relative w-16 h-16">
+                <img src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
+                <button type="button" onClick={() => removePhoto(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </div>
             ))}
             <label className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
               <Camera className="w-5 h-5 text-muted-foreground" />
@@ -292,17 +294,36 @@ export default function TripForm() {
           </div>
         </div>
 
+        <div>
+          <Label className="text-xs">Дополнительный комментарий</Label>
+          <Textarea
+            value={form.comment}
+            onChange={e => setForm(f => ({ ...f, comment: e.target.value }))}
+            placeholder="Дополнительный комментарий..."
+            rows={2}
+          />
+        </div>
+      </div>
+
+      {/* Фиксированные кнопки снизу */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border px-4 py-3 flex gap-3">
         <Button
-          className="w-full h-12 text-sm font-semibold"
-          onClick={() => saveMutation.mutate(form)}
+          variant="outline"
+          className="flex-1 h-11"
+          onClick={handleSave}
           disabled={saveMutation.isPending}
         >
-          {saveMutation.isPending ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4 mr-2" />
-          )}
-          {isNew ? 'Сохранить выезд' : 'Обновить выезд'}
+          {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Сохранить
+        </Button>
+        <Button
+          className="flex-1 h-11"
+          onClick={handleSubmit}
+          disabled={saveMutation.isPending || !checklistDone}
+          title={!checklistDone ? 'Заполните все пункты чек-листа' : ''}
+        >
+          {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          Отправить отчёт
         </Button>
       </div>
     </div>
