@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // value: comma-separated string, e.g. "БИ-1, БИ-2"
@@ -53,12 +53,13 @@ export default function BiKitsMultiSelect({ value = '', onChange, options = [] }
       )}
 
       {/* Manual input — always visible */}
-      <div className="flex gap-2">
-        <Input
+      <div className="flex gap-2 items-end">
+        <Textarea
           value={inputVal}
           onChange={e => setInputVal(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addKit(inputVal); } }}
           placeholder="Или введите номер вручную..."
+          rows={2}
+          className="resize-none flex-1"
         />
         <Button type="button" variant="outline" size="icon" onClick={() => addKit(inputVal)} disabled={!inputVal.trim()}>
           <Plus className="w-4 h-4" />
