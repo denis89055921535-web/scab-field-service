@@ -20,14 +20,17 @@ export default function BiKitsMultiSelect({ value = '', onChange, options = [] }
     onChange(kits.filter(k => k !== kit).join(', '));
   };
 
+  const availableOptions = options.filter(o => !kits.includes(o));
+
   return (
     <div className="space-y-2">
+      {/* Selected kits as tags */}
       {kits.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {kits.map(kit => (
-            <span key={kit} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2 py-1 rounded-full">
+            <span key={kit} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2 py-1 rounded-full break-all">
               {kit}
-              <button type="button" onClick={() => removeKit(kit)} className="hover:text-destructive transition-colors">
+              <button type="button" onClick={() => removeKit(kit)} className="hover:text-destructive transition-colors shrink-0">
                 <X className="w-3 h-3" />
               </button>
             </span>
@@ -35,30 +38,32 @@ export default function BiKitsMultiSelect({ value = '', onChange, options = [] }
         </div>
       )}
 
-      {options.length > 0 ? (
-        <div className="flex gap-2">
-          <Select onValueChange={addKit}>
-            <SelectTrigger className="flex-1"><SelectValue placeholder="Добавить комплект БИ" /></SelectTrigger>
-            <SelectContent>
-              {options.filter(o => !kits.includes(o)).map(kit => (
-                <SelectItem key={kit} value={kit}>{kit}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      ) : (
-        <div className="flex gap-2">
-          <Input
-            value={inputVal}
-            onChange={e => setInputVal(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addKit(inputVal); } }}
-            placeholder="Введите номер комплекта БИ"
-          />
-          <Button type="button" variant="outline" size="icon" onClick={() => addKit(inputVal)}>
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
+      {/* Dropdown from warehouse list */}
+      {availableOptions.length > 0 && (
+        <Select onValueChange={addKit} value="">
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Выбрать из списка..." />
+          </SelectTrigger>
+          <SelectContent>
+            {availableOptions.map(kit => (
+              <SelectItem key={kit} value={kit} className="break-all whitespace-normal">{kit}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
+
+      {/* Manual input — always visible */}
+      <div className="flex gap-2">
+        <Input
+          value={inputVal}
+          onChange={e => setInputVal(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addKit(inputVal); } }}
+          placeholder="Или введите номер вручную..."
+        />
+        <Button type="button" variant="outline" size="icon" onClick={() => addKit(inputVal)} disabled={!inputVal.trim()}>
+          <Plus className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }
