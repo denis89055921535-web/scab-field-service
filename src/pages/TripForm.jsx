@@ -7,10 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Send, Loader2, Camera, X } from 'lucide-react';
+import { Save, Send, Loader2, Camera, X, FileDown, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import ChecklistForm, { isChecklistComplete } from '@/components/trips/ChecklistSection';
+import { exportToExcel, exportToPDF, sendReportByEmail } from '@/lib/tripExport';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const TRIP_STATUSES = {
   draft: 'Черновик',
@@ -48,6 +50,7 @@ export default function TripForm() {
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [showErrors, setShowErrors] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const { data: crews = [] } = useQuery({
     queryKey: ['crews'],
@@ -141,6 +144,37 @@ export default function TripForm() {
   };
 
   const checklistDone = isChecklistComplete(form.sections);
+
+  const handleSendEmail = async (savedTrip) => {
+    setSending(true);
+    // Get report email from localStorage (set by admin)
+    const reportEmail = localStorage.getItem('report_email');
+    if (!reportEmail) {
+      toast.error('Email для отчётов не задан. Укажите его в настройках администратора.');
+      setSending(false);
+      return;
+    }
+    await sendReportByEmail(savedTrip || form, reportEmail);
+    toast.success(`Отчёт отправлен на ${reportEmail}`);
+    setSending(false);
+  };
+
+  const handleSubmitAndSend = async () => {
+    if (!isChecklistComplete(form.sections)) {
+      setShowErrors(true);
+      toast.error('Заполните все обязательные поля чек-листа');
+      return;
+    }
+    const data = { ...form, status: 'completed' };
+    saveMutation.mutate(data, {
+      onSuccess: async (saved) => {
+        await handleSendEmail(saved || data);
+      }
+    });
+  };
+
+  const handleExportExcel = () => exportToExcel(form);
+  const handleExportPDF = () => exportToPDF(form);
 
   return (
     <div className="pb-28">
@@ -306,25 +340,42 @@ export default function TripForm() {
       </div>
 
       {/* Фиксированные кнопки снизу */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border px-4 py-3 flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border px-4 py-3 flex gap-2">
         <Button
           variant="outline"
           className="flex-1 h-11"
           onClick={handleSave}
-          disabled={saveMutation.isPending}
+          disabled={saveMutation.isPending || sending}
         >
           {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Сохранить
         </Button>
+
         <Button
           className="flex-1 h-11"
-          onClick={handleSubmit}
-          disabled={saveMutation.isPending || !checklistDone}
+          onClick={handleSubmitAndSend}
+          disabled={saveMutation.isPending || sending || !checklistDone}
           title={!checklistDone ? 'Заполните все пункты чек-листа' : ''}
         >
-          {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
           Отправить отчёт
         </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="h-11 px-3" title="Выгрузить отчёт">
+              <FileDown className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleExportExcel}>
+              Скачать Excel (.xlsx)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportPDF}>
+              Скачать PDF
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

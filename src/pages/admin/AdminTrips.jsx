@@ -9,10 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Trash2, ChevronDown, ChevronRight, CheckCircle2, XCircle, MinusCircle, Filter, X } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronRight, CheckCircle2, XCircle, MinusCircle, Filter, X, Settings, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { CHECKLIST_SECTIONS } from '@/components/trips/ChecklistSection';
-import StatusBadge from '@/components/common/StatusBadge';
+import { Label } from '@/components/ui/label';
 
 const TRIP_STATUSES = {
   draft: { label: 'Черновик', color: 'bg-slate-100 text-slate-600' },
@@ -97,6 +97,8 @@ import { cn } from '@/lib/utils';
 export default function AdminTrips() {
   const [filters, setFilters] = useState({ status: 'all', search: '', crew: 'all', field: 'all', dateFrom: '', dateTo: '' });
   const [showFilters, setShowFilters] = useState(false);
+  const [showEmailSettings, setShowEmailSettings] = useState(false);
+  const [reportEmail, setReportEmail] = useState(() => localStorage.getItem('report_email') || '');
   const [selected, setSelected] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
@@ -144,19 +146,59 @@ export default function AdminTrips() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <h2 className="text-xl font-bold">Журнал выездов</h2>
-        <Button
-          variant={showFilters ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setShowFilters(v => !v)}
-          className="gap-2"
-        >
-          <Filter className="w-3.5 h-3.5" />
-          Фильтры
-          {hasActiveFilters && <span className="bg-primary-foreground text-primary rounded-full w-4 h-4 text-xs flex items-center justify-center font-bold">!</span>}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowEmailSettings(v => !v)}
+            className="gap-2"
+          >
+            <Mail className="w-3.5 h-3.5" />
+            Email отчётов
+          </Button>
+          <Button
+            variant={showFilters ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowFilters(v => !v)}
+            className="gap-2"
+          >
+            <Filter className="w-3.5 h-3.5" />
+            Фильтры
+            {hasActiveFilters && <span className="bg-primary-foreground text-primary rounded-full w-4 h-4 text-xs flex items-center justify-center font-bold">!</span>}
+          </Button>
+        </div>
       </div>
+
+      {showEmailSettings && (
+        <Card className="p-4 mb-4">
+          <p className="text-sm font-semibold mb-2">Настройка Email для отчётов</p>
+          <p className="text-xs text-muted-foreground mb-3">На этот адрес будут приходить отчёты при нажатии «Отправить отчёт» в журнале выезда.</p>
+          <div className="flex gap-2">
+            <Input
+              type="email"
+              placeholder="example@company.com"
+              value={reportEmail}
+              onChange={e => setReportEmail(e.target.value)}
+              className="flex-1"
+            />
+            <Button
+              size="sm"
+              onClick={() => {
+                localStorage.setItem('report_email', reportEmail);
+                toast.success('Email сохранён');
+                setShowEmailSettings(false);
+              }}
+            >
+              Сохранить
+            </Button>
+          </div>
+          {reportEmail && localStorage.getItem('report_email') === reportEmail && (
+            <p className="text-xs text-emerald-600 mt-2">✓ Текущий email: {reportEmail}</p>
+          )}
+        </Card>
+      )}
 
       {showFilters && (
         <Card className="p-4 mb-4 space-y-3">
