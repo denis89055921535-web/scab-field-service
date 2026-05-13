@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Camera, Loader2, AlertTriangle, X } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Plus, Camera, Loader2, AlertTriangle, X, Send, FileDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import { format } from 'date-fns';
+import { exportIncidentToExcel, sendIncidentByEmail } from '@/lib/incidentExport';
 
 const emptyForm = {
   incident_date: '',
@@ -31,6 +33,9 @@ export default function Incidents() {
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const { data: incidents = [], isLoading } = useQuery({
     queryKey: ['incidents'],
@@ -65,6 +70,7 @@ export default function Incidents() {
     mutationFn: (id) => base44.entities.Incident.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      setDetailOpen(false);
       toast.success('Запись удалена');
     },
   });
@@ -105,11 +111,29 @@ export default function Incidents() {
     setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
   };
 
+  const handleSendEmail = async (incident) => {
+    const reportEmail = localStorage.getItem('report_email');
+    if (!reportEmail) {
+      toast.error('Email для отчётов не задан. Укажите его в настройках администратора.');
+      return;
+    }
+    setSending(true);
+    await sendIncidentByEmail(incident, reportEmail);
+    toast.success(`Отчёт отправлен на ${reportEmail}`);
+    setSending(false);
+  };
+
+  const openDetail = (incident) => {
+    setSelectedIncident(incident);
+    setDetailOpen(true);
+  };
+
   return (
-    <div className="pb-24">
+    <div className="pb-4">
       <PageHeader title="Аварии" />
 
       <div className="px-4 pt-4 space-y-3">
+        {/* Add button */}
         <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
           <DialogTrigger asChild>
             <Button className="w-full" onClick={() => { setForm(emptyForm); setEditId(null); }}>
@@ -191,6 +215,7 @@ export default function Incidents() {
                 <Label className="text-xs">Комментарий</Label>
                 <Textarea value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} placeholder="Опишите ситуацию..." rows={3} />
               </div>
+
               <Button className="w-full" onClick={() => saveMutation.mutate(form)} disabled={saveMutation.isPending || !form.incident_date || !form.object_name}>
                 {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {editId ? 'Сохранить' : 'Добавить'}
@@ -199,6 +224,7 @@ export default function Incidents() {
           </DialogContent>
         </Dialog>
 
+        {/* List */}
         {isLoading ? (
           <div className="text-center text-muted-foreground py-12">Загрузка...</div>
         ) : incidents.length === 0 ? (
@@ -208,10 +234,10 @@ export default function Incidents() {
           </div>
         ) : (
           incidents.map(incident => (
-            <Card key={incident.id} className="p-4 space-y-2 cursor-pointer" onClick={() => openEdit(incident)}>
+            <Card key={incident.id} className="p-4 space-y-2 cursor-pointer active:opacity-80 transition-opacity" onClick={() => openDetail(incident)}>
               <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{incident.object_name}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm truncate">{incident.object_name}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">
                     {incident.incident_date ? format(new Date(incident.incident_date), 'dd.MM.yyyy') : '—'}
                     {incident.bi_kit_number ? ` · БИ: ${incident.bi_kit_number}` : ''}
@@ -224,7 +250,10 @@ export default function Incidents() {
                     <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{incident.comment}</div>
                   )}
                 </div>
-                <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                <div className="flex items-center gap-1 shrink-0">
+                  <AlertTriangle className="w-4 h-4 text-destructive" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </div>
               </div>
               {incident.photos?.length > 0 && (
                 <div className="flex gap-1.5 flex-wrap">
@@ -240,6 +269,114 @@ export default function Incidents() {
           ))
         )}
       </div>
+
+      {/* Detail modal */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          {selectedIncident && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-base">{selectedIncident.object_name}</DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-3 mt-1">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Дата аварии</p>
+                    <p className="font-medium">{selectedIncident.incident_date ? format(new Date(selectedIncident.incident_date), 'dd.MM.yyyy') : '—'}</p>
+                  </div>
+                  {selectedIncident.bi_kit_number && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Комплект БИ</p>
+                      <p className="font-medium">{selectedIncident.bi_kit_number}</p>
+                    </div>
+                  )}
+                  {selectedIncident.pipe_number && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Номер трубы</p>
+                      <p className="font-medium">{selectedIncident.pipe_number}</p>
+                    </div>
+                  )}
+                  {selectedIncident.rfid_tag_number && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">RFID-метка</p>
+                      <p className="font-medium">{selectedIncident.rfid_tag_number}</p>
+                    </div>
+                  )}
+                  {selectedIncident.last_inspection_date && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Последняя инспекция</p>
+                      <p className="font-medium">{format(new Date(selectedIncident.last_inspection_date), 'dd.MM.yyyy')}</p>
+                    </div>
+                  )}
+                </div>
+
+                {selectedIncident.comment && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Комментарий</p>
+                    <p className="text-sm mt-0.5">{selectedIncident.comment}</p>
+                  </div>
+                )}
+
+                {selectedIncident.photos?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Фотографии</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {selectedIncident.photos.map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                          <img src={url} className="w-20 h-20 rounded-lg object-cover" alt="" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-2 border-t border-border">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-10 text-sm gap-1.5"
+                    onClick={() => { setDetailOpen(false); openEdit(selectedIncident); }}
+                  >
+                    Редактировать
+                  </Button>
+                  <Button
+                    className="flex-1 h-10 text-sm gap-1.5"
+                    onClick={() => handleSendEmail(selectedIncident)}
+                    disabled={sending}
+                  >
+                    {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    Отправить
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="h-10 px-3" title="Выгрузить">
+                        <FileDown className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => exportIncidentToExcel(selectedIncident)}>
+                        Скачать Excel (.xlsx)
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => deleteMutation.mutate(selectedIncident.id)}
+                  disabled={deleteMutation.isPending}
+                >
+                  {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                  Удалить запись
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

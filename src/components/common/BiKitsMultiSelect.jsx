@@ -1,0 +1,64 @@
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Plus, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// value: comma-separated string, e.g. "БИ-1, БИ-2"
+export default function BiKitsMultiSelect({ value = '', onChange, options = [] }) {
+  const kits = value ? value.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const [inputVal, setInputVal] = useState('');
+
+  const addKit = (kit) => {
+    const trimmed = kit.trim();
+    if (!trimmed || kits.includes(trimmed)) return;
+    onChange([...kits, trimmed].join(', '));
+    setInputVal('');
+  };
+
+  const removeKit = (kit) => {
+    onChange(kits.filter(k => k !== kit).join(', '));
+  };
+
+  return (
+    <div className="space-y-2">
+      {kits.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {kits.map(kit => (
+            <span key={kit} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2 py-1 rounded-full">
+              {kit}
+              <button type="button" onClick={() => removeKit(kit)} className="hover:text-destructive transition-colors">
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {options.length > 0 ? (
+        <div className="flex gap-2">
+          <Select onValueChange={addKit}>
+            <SelectTrigger className="flex-1"><SelectValue placeholder="Добавить комплект БИ" /></SelectTrigger>
+            <SelectContent>
+              {options.filter(o => !kits.includes(o)).map(kit => (
+                <SelectItem key={kit} value={kit}>{kit}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      ) : (
+        <div className="flex gap-2">
+          <Input
+            value={inputVal}
+            onChange={e => setInputVal(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addKit(inputVal); } }}
+            placeholder="Введите номер комплекта БИ"
+          />
+          <Button type="button" variant="outline" size="icon" onClick={() => addKit(inputVal)}>
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
