@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // value: comma-separated string, e.g. "БИ-1, БИ-2"
@@ -28,7 +28,7 @@ export default function BiKitsMultiSelect({ value = '', onChange, options = [] }
       {kits.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {kits.map(kit => (
-            <span key={kit} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2 py-1 rounded-full break-all">
+            <span key={kit} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap">
               {kit}
               <button type="button" onClick={() => removeKit(kit)} className="hover:text-destructive transition-colors shrink-0">
                 <X className="w-3 h-3" />
@@ -46,20 +46,19 @@ export default function BiKitsMultiSelect({ value = '', onChange, options = [] }
           </SelectTrigger>
           <SelectContent>
             {availableOptions.map(kit => (
-              <SelectItem key={kit} value={kit} className="break-all whitespace-normal">{kit}</SelectItem>
+              <SelectItem key={kit} value={kit} className="">{kit}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       )}
 
       {/* Manual input — always visible */}
-      <div className="flex gap-2 items-end">
-        <Textarea
+      <div className="flex gap-2">
+        <Input
           value={inputVal}
           onChange={e => setInputVal(e.target.value)}
-          placeholder="Или введите номер вручную..."
-          rows={2}
-          className="resize-none flex-1"
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addKit(inputVal); } }}
+          placeholder="Ввести номер вручную..."
         />
         <Button type="button" variant="outline" size="icon" onClick={() => addKit(inputVal)} disabled={!inputVal.trim()}>
           <Plus className="w-4 h-4" />
