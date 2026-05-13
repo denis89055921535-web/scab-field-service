@@ -7,8 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Send, Loader2, Camera, X, FileDown, Mail, Plus } from 'lucide-react';
-import BiKitsMultiSelect from '@/components/common/BiKitsMultiSelect';
+import { Save, Send, Loader2, Camera, X, FileDown, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import ChecklistForm, { isChecklistComplete } from '@/components/trips/ChecklistSection';
@@ -274,11 +273,18 @@ export default function TripForm() {
 
         <div>
           <Label className="text-xs">Комплект БИ</Label>
-          <BiKitsMultiSelect
-            value={form.bi_kits_numbers}
-            onChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))}
-            options={biKitsFromWarehouse}
-          />
+          {biKitsFromWarehouse.length > 0 ? (
+            <Select value={form.bi_kits_numbers} onValueChange={v => setForm(f => ({ ...f, bi_kits_numbers: v }))}>
+              <SelectTrigger><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
+              <SelectContent>
+                {biKitsFromWarehouse.map(kit => (
+                  <SelectItem key={kit} value={kit}>{kit}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input value={form.bi_kits_numbers} onChange={e => setForm(f => ({ ...f, bi_kits_numbers: e.target.value }))} placeholder="Номер комплекта БИ" />
+          )}
         </div>
 
         <div>

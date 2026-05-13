@@ -21,7 +21,7 @@ export const CHECKLIST_SECTIONS = [
     title: 'Шкафы',
     fields: [
       { key: 'power', label: 'Подключение к электросети', type: 'yesno' },
-      { key: 'damage', label: 'Отсутствие повреждений', type: 'yesno' },
+      { key: 'damage', label: 'Повреждения', type: 'yesno' },
       { key: 'comm_lines', label: 'Проверка коммуникационных линий', type: 'yesno' },
       { key: 'external', label: 'Проверка внешних подключений', type: 'yesno' },
       { key: 'indicators', label: 'Проверка индикации на каждом компоненте', type: 'yesno' },
