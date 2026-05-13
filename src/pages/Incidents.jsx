@@ -208,32 +208,27 @@ export default function Incidents() {
           </div>
         ) : (
           incidents.map(incident => (
-            <Card key={incident.id} className="p-4 space-y-2 cursor-pointer" onClick={() => openEdit(incident)}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{incident.object_name}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5 space-y-0.5">
-                    <div>{incident.incident_date ? format(new Date(incident.incident_date), 'dd.MM.yyyy') : '—'}</div>
-                    {incident.bi_kit_number && <div>БИ: {incident.bi_kit_number}</div>}
-                    {incident.pipe_number && <div>Труба: {incident.pipe_number}</div>}
-                    {incident.rfid_tag_number && <div>RFID: {incident.rfid_tag_number}</div>}
+            <Card key={incident.id} className="px-3 py-2.5 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => openEdit(incident)}>
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm truncate">{incident.object_name}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {incident.incident_date ? format(new Date(incident.incident_date), 'dd.MM.yyyy') : '—'}
+                    {incident.bi_kit_number ? ` · БИ: ${incident.bi_kit_number}` : ''}
+                    {incident.pipe_number ? ` · Труба: ${incident.pipe_number}` : ''}
+                    {incident.rfid_tag_number ? ` · RFID: ${incident.rfid_tag_number}` : ''}
                   </div>
                   {incident.comment && (
-                    <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{incident.comment}</div>
+                    <div className="text-xs text-muted-foreground truncate">{incident.comment}</div>
                   )}
                 </div>
-                <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                {incident.photos?.length > 0 && (
+                  <div className="text-xs text-muted-foreground shrink-0 flex items-center gap-0.5">
+                    <Camera className="w-3 h-3" />{incident.photos.length}
+                  </div>
+                )}
               </div>
-              {incident.photos?.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap">
-                  {incident.photos.slice(0, 4).map((url, i) => (
-                    <img key={i} src={url} className="w-12 h-12 rounded object-cover" alt="" />
-                  ))}
-                  {incident.photos.length > 4 && (
-                    <div className="w-12 h-12 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">+{incident.photos.length - 4}</div>
-                  )}
-                </div>
-              )}
             </Card>
           ))
         )}
