@@ -212,14 +212,12 @@ export default function Incidents() {
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <div className="font-medium text-sm">{incident.object_name}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {incident.incident_date ? format(new Date(incident.incident_date), 'dd.MM.yyyy') : '—'}
-                    {incident.bi_kit_number ? ` · БИ: ${incident.bi_kit_number}` : ''}
-                    {incident.pipe_number ? ` · Труба: ${incident.pipe_number}` : ''}
+                  <div className="text-xs text-muted-foreground mt-0.5 space-y-0.5">
+                    <div>{incident.incident_date ? format(new Date(incident.incident_date), 'dd.MM.yyyy') : '—'}</div>
+                    {incident.bi_kit_number && <div>БИ: {incident.bi_kit_number}</div>}
+                    {incident.pipe_number && <div>Труба: {incident.pipe_number}</div>}
+                    {incident.rfid_tag_number && <div>RFID: {incident.rfid_tag_number}</div>}
                   </div>
-                  {incident.rfid_tag_number && (
-                    <div className="text-xs text-muted-foreground">RFID: {incident.rfid_tag_number}</div>
-                  )}
                   {incident.comment && (
                     <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{incident.comment}</div>
                   )}
