@@ -93,6 +93,9 @@ export default function Incidents() {
     },
   });
 
+  // Existing saved incidents are read-only
+  const isReadOnly = !!editId;
+
   const openEdit = (incident) => {
     setForm({
       incident_date: incident.incident_date || '',
@@ -159,12 +162,19 @@ export default function Incidents() {
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editId ? 'Редактировать' : 'Новая авария'}</DialogTitle>
+              <DialogTitle>{isReadOnly ? 'Просмотр аварии' : 'Новая авария'}</DialogTitle>
             </DialogHeader>
+
+            {isReadOnly && (
+              <div className="px-0 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 text-center">
+                Запись сохранена и не может быть изменена
+              </div>
+            )}
+
             <div className="space-y-3 mt-2">
               <div>
                 <Label className="text-xs">Дата аварии *</Label>
-                <Input type="date" value={form.incident_date} onChange={e => setForm({ ...form, incident_date: e.target.value })} />
+                <Input type="date" value={form.incident_date} onChange={e => setForm({ ...form, incident_date: e.target.value })} disabled={isReadOnly} readOnly={isReadOnly} />
               </div>
 
               <div>
@@ -175,9 +185,10 @@ export default function Incidents() {
                     onValueChange={v => setForm({ ...form, object_name: v })}
                     placeholder="Выберите объект"
                     options={objectNames.map(name => ({ value: name, label: name }))}
+                    disabled={isReadOnly}
                   />
                 ) : (
-                  <Input value={form.object_name} onChange={e => setForm({ ...form, object_name: e.target.value })} placeholder="Укажите объект" />
+                  <Input value={form.object_name} onChange={e => setForm({ ...form, object_name: e.target.value })} placeholder="Укажите объект" disabled={isReadOnly} readOnly={isReadOnly} />
                 )}
               </div>
 
@@ -189,25 +200,26 @@ export default function Incidents() {
                     onValueChange={v => setForm({ ...form, bi_kit_number: v })}
                     placeholder="Выберите комплект БИ"
                     options={biKits.map(kit => ({ value: kit, label: kit }))}
+                    disabled={isReadOnly}
                   />
                 ) : (
-                  <Input value={form.bi_kit_number} onChange={e => setForm({ ...form, bi_kit_number: e.target.value })} placeholder="Номер комплекта БИ" />
+                  <Input value={form.bi_kit_number} onChange={e => setForm({ ...form, bi_kit_number: e.target.value })} placeholder="Номер комплекта БИ" disabled={isReadOnly} readOnly={isReadOnly} />
                 )}
               </div>
 
               <div>
                 <Label className="text-xs">Номер трубы</Label>
-                <Input value={form.pipe_number} onChange={e => setForm({ ...form, pipe_number: e.target.value })} placeholder="Введите номер трубы" />
+                <Input value={form.pipe_number} onChange={e => setForm({ ...form, pipe_number: e.target.value })} placeholder="Введите номер трубы" disabled={isReadOnly} readOnly={isReadOnly} />
               </div>
 
               <div>
                 <Label className="text-xs">Номер RFID-метки</Label>
-                <Input value={form.rfid_tag_number} onChange={e => setForm({ ...form, rfid_tag_number: e.target.value })} placeholder="Введите номер RFID-метки" />
+                <Input value={form.rfid_tag_number} onChange={e => setForm({ ...form, rfid_tag_number: e.target.value })} placeholder="Введите номер RFID-метки" disabled={isReadOnly} readOnly={isReadOnly} />
               </div>
 
               <div>
                 <Label className="text-xs">Дата последней инспекции</Label>
-                <Input type="date" value={form.last_inspection_date} onChange={e => setForm({ ...form, last_inspection_date: e.target.value })} />
+                <Input type="date" value={form.last_inspection_date} onChange={e => setForm({ ...form, last_inspection_date: e.target.value })} disabled={isReadOnly} readOnly={isReadOnly} />
               </div>
 
               <div>
@@ -216,37 +228,43 @@ export default function Incidents() {
                   {form.photos.map((url, idx) => (
                     <div key={idx} className="relative w-16 h-16">
                       <img src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
-                      <button onClick={() => removePhoto(idx)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
-                        <X className="w-2.5 h-2.5" />
-                      </button>
+                      {!isReadOnly && (
+                        <button onClick={() => removePhoto(idx)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      )}
                     </div>
                   ))}
-                  <label className="cursor-pointer w-16 h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center hover:bg-muted transition-colors">
-                    {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5 text-muted-foreground" />}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
-                  </label>
+                  {!isReadOnly && (
+                    <label className="cursor-pointer w-16 h-16 border-2 border-dashed border-border rounded-lg flex items-center justify-center hover:bg-muted transition-colors">
+                      {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5 text-muted-foreground" />}
+                      <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
+                    </label>
+                  )}
                 </div>
               </div>
 
               <div>
                 <Label className="text-xs">Комментарий</Label>
-                <Textarea value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} placeholder="Опишите ситуацию..." rows={3} />
+                <Textarea value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} placeholder="Опишите ситуацию..." rows={3} disabled={isReadOnly} readOnly={isReadOnly} />
               </div>
-              {/* 3 кнопки */}
+
               <div className="flex gap-2 pt-1">
-                <Button
-                  variant="outline"
-                  className="h-11 px-3"
-                  onClick={handleSave}
-                  disabled={saveMutation.isPending || !form.incident_date || !form.object_name}
-                  title="Сохранить"
-                >
-                  {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                </Button>
+                {!isReadOnly && (
+                  <Button
+                    variant="outline"
+                    className="h-11 px-3"
+                    onClick={handleSave}
+                    disabled={saveMutation.isPending || !form.incident_date || !form.object_name}
+                    title="Сохранить"
+                  >
+                    {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  </Button>
+                )}
                 <Button
                   className="flex-1 h-11"
                   onClick={handleSend}
-                  disabled={sending || !form.incident_date || !form.object_name}
+                  disabled={sending}
                 >
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
                   Отправить отчёт
