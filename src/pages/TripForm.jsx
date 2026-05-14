@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Loader2, Camera, X, FileDown, Mail, Plus, Trash2 } from 'lucide-react';
+import MobileSelect from '@/components/common/MobileSelect';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import ChecklistForm, { isChecklistComplete } from '@/components/trips/ChecklistSection';
@@ -105,6 +105,19 @@ export default function TripForm() {
     mutationFn: async (data) => {
       if (isNew) return base44.entities.TripLog.create(data);
       return base44.entities.TripLog.update(tripId, data);
+    },
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['trips'] });
+      const previous = queryClient.getQueryData(['trips']);
+      queryClient.setQueryData(['trips'], (old = []) =>
+        isNew
+          ? [{ ...data, id: '__optimistic__', created_date: new Date().toISOString() }, ...old]
+          : old.map(t => t.id === tripId ? { ...t, ...data } : t)
+      );
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['trips'], ctx.previous);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
@@ -225,14 +238,12 @@ export default function TripForm() {
           </div>
           <div>
             <Label className="text-xs">Статус выезда</Label>
-            <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {Object.entries(TRIP_STATUSES).map(([k, label]) => (
-                  <SelectItem key={k} value={k}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MobileSelect
+              value={form.status}
+              onValueChange={v => setForm(f => ({ ...f, status: v }))}
+              placeholder="Статус"
+              options={Object.entries(TRIP_STATUSES).map(([k, label]) => ({ value: k, label }))}
+            />
           </div>
         </div>
 
@@ -256,16 +267,12 @@ export default function TripForm() {
 
         <div>
           <Label className="text-xs">№ буровой бригады *</Label>
-          <Select value={form.crew_number} onValueChange={handleCrewSelect}>
-            <SelectTrigger><SelectValue placeholder="Выберите бригаду" /></SelectTrigger>
-            <SelectContent>
-              {crews.map(c => (
-                <SelectItem key={c.id} value={c.crew_number}>
-                  №{c.crew_number} — {c.field_name || 'Без месторождения'}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MobileSelect
+            value={form.crew_number}
+            onValueChange={handleCrewSelect}
+            placeholder="Выберите бригаду"
+            options={crews.map(c => ({ value: c.crew_number, label: `№${c.crew_number} — ${c.field_name || 'Без месторождения'}` }))}
+          />
         </div>
 
         <div>
@@ -288,16 +295,18 @@ export default function TripForm() {
 
         <div>
           <Label className="text-xs">Тип работ</Label>
-          <Select value={form.work_type} onValueChange={v => setForm(f => ({ ...f, work_type: v }))}>
-            <SelectTrigger><SelectValue placeholder="Выберите тип работ" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="maintenance">Обслуживание оборуд.</SelectItem>
-              <SelectItem value="bi_accident">Авария БИ</SelectItem>
-              <SelectItem value="bi_inspection">Инспекция/Перечиповка БИ</SelectItem>
-              <SelectItem value="equipment_install">Монтаж оборуд.</SelectItem>
-              <SelectItem value="equipment_uninstall">Демонтаж оборуд.</SelectItem>
-            </SelectContent>
-          </Select>
+          <MobileSelect
+            value={form.work_type}
+            onValueChange={v => setForm(f => ({ ...f, work_type: v }))}
+            placeholder="Выберите тип работ"
+            options={[
+              { value: 'maintenance', label: 'Обслуживание оборуд.' },
+              { value: 'bi_accident', label: 'Авария БИ' },
+              { value: 'bi_inspection', label: 'Инспекция/Перечиповка БИ' },
+              { value: 'equipment_install', label: 'Монтаж оборуд.' },
+              { value: 'equipment_uninstall', label: 'Демонтаж оборуд.' },
+            ]}
+          />
         </div>
 
         <div>
@@ -311,14 +320,13 @@ export default function TripForm() {
             {(form.bi_kits_list || ['']).map((kit, idx) => (
               <div key={idx} className="flex gap-2 items-center">
                 {biKitsFromWarehouse.length > 0 ? (
-                  <Select value={kit} onValueChange={v => updateBiKit(idx, v)}>
-                    <SelectTrigger className="flex-1"><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
-                    <SelectContent>
-                      {biKitsFromWarehouse.map(k => (
-                        <SelectItem key={k} value={k}>{k}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <MobileSelect
+                    value={kit}
+                    onValueChange={v => updateBiKit(idx, v)}
+                    placeholder="Выберите комплект БИ"
+                    options={biKitsFromWarehouse.map(k => ({ value: k, label: k }))}
+                    triggerClassName="flex-1"
+                  />
                 ) : (
                   <Input
                     className="flex-1"
@@ -390,7 +398,7 @@ export default function TripForm() {
       </div>
 
       {/* Фиксированные кнопки снизу */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-t border-border px-4 py-3 flex gap-2 max-w-lg mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-t border-border px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex gap-2 max-w-lg mx-auto">
         <Button
           variant="outline"
           className="h-11 px-3"

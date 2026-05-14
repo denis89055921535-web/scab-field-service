@@ -5,9 +5,9 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw } from 'lucide-react';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import MobileSelect from '@/components/common/MobileSelect';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import PageHeader from '@/components/common/PageHeader';
@@ -69,17 +69,16 @@ export default function Trips() {
       />
 
       <div className="px-4 pt-3 pb-2">
-        <Select value={crewFilter} onValueChange={setCrewFilter}>
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue placeholder="Все бригады" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Все бригады</SelectItem>
-            {crewNumbers.map(num => (
-              <SelectItem key={num} value={num}>Бригада №{num}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <MobileSelect
+          value={crewFilter}
+          onValueChange={setCrewFilter}
+          placeholder="Все бригады"
+          triggerClassName="h-8 text-xs"
+          options={[
+            { value: 'all', label: 'Все бригады' },
+            ...crewNumbers.map(num => ({ value: num, label: `Бригада №${num}` })),
+          ]}
+        />
       </div>
 
       <div className="px-4 pb-3">

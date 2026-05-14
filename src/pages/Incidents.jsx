@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import MobileSelect from '@/components/common/MobileSelect';
 import { Plus, Camera, Loader2, AlertTriangle, X, Save, Mail, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
@@ -56,6 +56,19 @@ export default function Incidents() {
     mutationFn: (data) => editId
       ? base44.entities.Incident.update(editId, data)
       : base44.entities.Incident.create(data),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['incidents'] });
+      const previous = queryClient.getQueryData(['incidents']);
+      queryClient.setQueryData(['incidents'], (old = []) =>
+        editId
+          ? old.map(i => i.id === editId ? { ...i, ...data } : i)
+          : [{ ...data, id: '__optimistic__', created_date: new Date().toISOString() }, ...old]
+      );
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['incidents'], ctx.previous);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       toast.success(editId ? 'Авария обновлена' : 'Авария добавлена');
@@ -65,6 +78,15 @@ export default function Incidents() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Incident.delete(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['incidents'] });
+      const previous = queryClient.getQueryData(['incidents']);
+      queryClient.setQueryData(['incidents'], (old = []) => old.filter(i => i.id !== id));
+      return { previous };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['incidents'], ctx.previous);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
       toast.success('Запись удалена');
@@ -148,12 +170,12 @@ export default function Incidents() {
               <div>
                 <Label className="text-xs">Объект *</Label>
                 {objectNames.length > 0 ? (
-                  <Select value={form.object_name} onValueChange={v => setForm({ ...form, object_name: v })}>
-                    <SelectTrigger className="h-auto min-h-9 whitespace-normal [&>span]:whitespace-normal [&>span]:line-clamp-none"><SelectValue placeholder="Выберите объект" /></SelectTrigger>
-                    <SelectContent>
-                      {objectNames.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <MobileSelect
+                    value={form.object_name}
+                    onValueChange={v => setForm({ ...form, object_name: v })}
+                    placeholder="Выберите объект"
+                    options={objectNames.map(name => ({ value: name, label: name }))}
+                  />
                 ) : (
                   <Input value={form.object_name} onChange={e => setForm({ ...form, object_name: e.target.value })} placeholder="Укажите объект" />
                 )}
@@ -162,12 +184,12 @@ export default function Incidents() {
               <div>
                 <Label className="text-xs">Комплект БИ</Label>
                 {biKits.length > 0 ? (
-                  <Select value={form.bi_kit_number} onValueChange={v => setForm({ ...form, bi_kit_number: v })}>
-                    <SelectTrigger><SelectValue placeholder="Выберите комплект БИ" /></SelectTrigger>
-                    <SelectContent>
-                      {biKits.map(kit => <SelectItem key={kit} value={kit}>{kit}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <MobileSelect
+                    value={form.bi_kit_number}
+                    onValueChange={v => setForm({ ...form, bi_kit_number: v })}
+                    placeholder="Выберите комплект БИ"
+                    options={biKits.map(kit => ({ value: kit, label: kit }))}
+                  />
                 ) : (
                   <Input value={form.bi_kit_number} onChange={e => setForm({ ...form, bi_kit_number: e.target.value })} placeholder="Номер комплекта БИ" />
                 )}

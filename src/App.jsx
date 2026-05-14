@@ -47,14 +47,16 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Crews />} />
+        {/* Tab routes: rendered by TabKeepAlive in AppLayout, route just needs to exist */}
+        <Route path="/" element={null} />
+        <Route path="/trips" element={null} />
+        <Route path="/warehouse" element={null} />
+        <Route path="/incidents" element={null} />
+        <Route path="/profile" element={null} />
+        {/* Sub-routes rendered via Outlet */}
         <Route path="/crew/:id" element={<CrewView />} />
-        <Route path="/trips" element={<Trips />} />
         <Route path="/trips/:id" element={<TripForm />} />
-        <Route path="/warehouse" element={<Warehouse />} />
-        <Route path="/incidents" element={<Incidents />} />
         <Route path="/instructions" element={<Instructions />} />
-        <Route path="/profile" element={<Profile />} />
       </Route>
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminCrews />} />
