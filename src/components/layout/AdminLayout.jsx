@@ -14,12 +14,13 @@ export default function AdminLayout() {
   const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-background font-inter">
+    <div className="min-h-screen bg-background font-inter flex flex-col">
+
       <header className="bg-primary text-primary-foreground px-4 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            <span className="font-semibold text-sm">Админ-панель АРБИ</span>
+            <span className="font-semibold text-sm">Админ-панель SCAB</span>
           </div>
           <Link to="/" className="flex items-center gap-1 text-xs opacity-80 hover:opacity-100 transition-opacity">
             <ChevronLeft className="w-4 h-4" />
@@ -53,7 +54,7 @@ export default function AdminLayout() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto p-4 md:p-6">
+      <main className="flex-1 p-4 md:p-6" style={{ maxWidth: 'calc(100vh * 16 / 9)', width: '100%', marginLeft: 'auto', marginRight: 'auto' }}>
         <Outlet />
       </main>
     </div>
