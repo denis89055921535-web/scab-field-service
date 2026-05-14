@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import { format } from 'date-fns';
 import { exportIncidentToExcel, sendIncidentByEmail } from '@/lib/incidentExport';
-import IncidentAIChat from '@/components/incidents/IncidentAIChat';
 
 const emptyForm = {
   incident_date: '',
@@ -248,12 +247,6 @@ export default function Incidents() {
               <div>
                 <Label className="text-xs">Комментарий</Label>
                 <Textarea value={form.comment} onChange={e => setForm({ ...form, comment: e.target.value })} placeholder="Опишите ситуацию..." rows={3} disabled={isReadOnly} readOnly={isReadOnly} />
-              </div>
-
-              {/* AI Assistant */}
-              <div>
-                <Label className="text-xs mb-2 block">AI Ассистент</Label>
-                <IncidentAIChat incidentContext={isReadOnly ? form : null} />
               </div>
 
               <div className="flex gap-2 pt-1">
