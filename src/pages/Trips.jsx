@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Calendar, MapPin, User, Briefcase } from 'lucide-react';
+import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw } from 'lucide-react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import PageHeader from '@/components/common/PageHeader';
@@ -23,7 +24,11 @@ const workTypeLabels = {
 
 export default function Trips() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [crewFilter, setCrewFilter] = useState('all');
+  const { containerRef, pullDistance, pulling } = usePullToRefresh(() =>
+    queryClient.invalidateQueries({ queryKey: ['trips'] })
+  );
 
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ['trips'],
@@ -43,7 +48,12 @@ export default function Trips() {
   const crewNumbers = [...new Set(trips.map(t => t.crew_number).filter(Boolean))].sort();
 
   return (
-    <div>
+    <div ref={containerRef} className="overflow-y-auto h-full">
+      {pullDistance > 0 && (
+        <div className="flex justify-center py-2 text-muted-foreground" style={{ height: Math.min(pullDistance * 0.5, 40) }}>
+          <RefreshCw className={`w-4 h-4 ${pulling ? 'text-primary animate-spin' : ''}`} style={{ transform: `rotate(${pullDistance * 2}deg)` }} />
+        </div>
+      )}
       <PageHeader
         title="Журнал выездов"
         actions={

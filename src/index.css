@@ -81,9 +81,26 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  input, textarea {
+    user-select: text;
+    -webkit-user-select: text;
   }
 
   body {
     @apply bg-background text-foreground font-inter;
+    overscroll-behavior-y: none;
   }
+}
+
+/* Safe area support */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }

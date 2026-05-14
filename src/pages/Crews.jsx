@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import CrewCard from '@/components/crews/CrewCard';
 import PageHeader from '@/components/common/PageHeader';
 import { crewStatuses } from '@/lib/statusConfig';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 export default function Crews() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -21,6 +23,10 @@ export default function Crews() {
     queryKey: ['crews'],
     queryFn: () => base44.entities.DrillingCrew.list('-created_date'),
   });
+
+  const { containerRef, pullDistance, pulling } = usePullToRefresh(() =>
+    queryClient.invalidateQueries({ queryKey: ['crews'] })
+  );
 
   const filtered = crews.filter(c => {
     const matchSearch = !search || 
@@ -31,7 +37,12 @@ export default function Crews() {
   });
 
   return (
-    <div>
+    <div ref={containerRef} className="overflow-y-auto h-full">
+      {pullDistance > 0 && (
+        <div className="flex justify-center py-2 text-muted-foreground" style={{ height: Math.min(pullDistance * 0.5, 40) }}>
+          <RefreshCw className={`w-4 h-4 transition-transform ${pulling ? 'text-primary animate-spin' : ''}`} style={{ transform: `rotate(${pullDistance * 2}deg)` }} />
+        </div>
+      )}
       <PageHeader
         title="Буровые бригады"
         actions={

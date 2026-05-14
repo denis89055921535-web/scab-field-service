@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, Building2, Shield, LogOut, Settings } from 'lucide-react';
+import { User, Mail, Phone, Building2, Shield, LogOut, Settings, Trash2 } from 'lucide-react';
 import PageHeader from '@/components/common/PageHeader';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -70,6 +71,35 @@ export default function Profile() {
           <LogOut className="w-4 h-4 mr-2" />
           Выйти из аккаунта
         </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="w-full h-11 border-destructive text-destructive hover:bg-destructive/10">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Удалить аккаунт
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Удалить аккаунт?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Это действие необратимо. Все ваши данные будут удалены. Вы уверены?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Отмена</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={async () => {
+                  await base44.entities.User.delete(user.id).catch(() => {});
+                  base44.auth.logout();
+                }}
+              >
+                Удалить
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
