@@ -52,6 +52,9 @@ export default function TripForm() {
   const [showErrors, setShowErrors] = useState(false);
   const [sending, setSending] = useState(false);
 
+  // Запрет редактирования для сохранённых (не черновик) выездов
+  const isReadOnly = !isNew && form.status !== 'draft';
+
   const { data: crews = [] } = useQuery({
     queryKey: ['crews'],
     queryFn: () => base44.entities.DrillingCrew.list(),
@@ -221,9 +224,15 @@ export default function TripForm() {
   return (
     <div className="pb-28">
       <PageHeader
-        title={isNew ? 'Новый выезд' : 'Редактирование выезда'}
+        title={isNew ? 'Новый выезд' : isReadOnly ? 'Просмотр выезда' : 'Редактирование выезда'}
         backTo="/trips"
       />
+
+      {isReadOnly && (
+        <div className="mx-4 mt-3 px-4 py-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400">
+          Выезд сохранён и не может быть изменён
+        </div>
+      )}
 
       <div className="p-4 space-y-4">
         {/* Основные поля */}
@@ -234,6 +243,8 @@ export default function TripForm() {
               type="date"
               value={form.trip_date}
               onChange={e => setForm(f => ({ ...f, trip_date: e.target.value }))}
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
             />
           </div>
           <div>
@@ -243,6 +254,7 @@ export default function TripForm() {
               onValueChange={v => setForm(f => ({ ...f, status: v }))}
               placeholder="Статус"
               options={Object.entries(TRIP_STATUSES).map(([k, label]) => ({ value: k, label }))}
+              disabled={isReadOnly}
             />
           </div>
         </div>
@@ -253,6 +265,8 @@ export default function TripForm() {
             value={form.employee_name}
             onChange={e => setForm(f => ({ ...f, employee_name: e.target.value }))}
             placeholder="ФИО сотрудника"
+            readOnly={isReadOnly}
+            disabled={isReadOnly}
           />
         </div>
 
@@ -262,6 +276,8 @@ export default function TripForm() {
             value={form.position || ''}
             onChange={e => setForm(f => ({ ...f, position: e.target.value }))}
             placeholder="Должность сотрудника"
+            readOnly={isReadOnly}
+            disabled={isReadOnly}
           />
         </div>
 
@@ -272,6 +288,7 @@ export default function TripForm() {
             onValueChange={handleCrewSelect}
             placeholder="Выберите бригаду"
             options={crews.map(c => ({ value: c.crew_number, label: `№${c.crew_number} — ${c.field_name || 'Без месторождения'}` }))}
+            disabled={isReadOnly}
           />
         </div>
 
@@ -281,6 +298,8 @@ export default function TripForm() {
             value={form.field_name}
             onChange={e => setForm(f => ({ ...f, field_name: e.target.value }))}
             placeholder="Месторождение"
+            readOnly={isReadOnly}
+            disabled={isReadOnly}
           />
         </div>
 
@@ -290,6 +309,8 @@ export default function TripForm() {
             value={form.drill_type || ''}
             onChange={e => setForm(f => ({ ...f, drill_type: e.target.value }))}
             placeholder="Например: ZJ-50"
+            readOnly={isReadOnly}
+            disabled={isReadOnly}
           />
         </div>
 
@@ -299,6 +320,7 @@ export default function TripForm() {
             value={form.work_type}
             onValueChange={v => setForm(f => ({ ...f, work_type: v }))}
             placeholder="Выберите тип работ"
+            disabled={isReadOnly}
             options={[
               { value: 'maintenance', label: 'Обслуживание оборуд.' },
               { value: 'bi_accident', label: 'Авария БИ' },
@@ -312,9 +334,11 @@ export default function TripForm() {
         <div>
           <div className="flex items-center justify-between mb-1">
             <Label className="text-xs">Комплект БИ</Label>
-            <button type="button" onClick={addBiKit} className="flex items-center gap-1 text-xs text-primary hover:underline">
-              <Plus className="w-3 h-3" /> Добавить
-            </button>
+            {!isReadOnly && (
+              <button type="button" onClick={addBiKit} className="flex items-center gap-1 text-xs text-primary hover:underline">
+                <Plus className="w-3 h-3" /> Добавить
+              </button>
+            )}
           </div>
           <div className="space-y-2">
             {(form.bi_kits_list || ['']).map((kit, idx) => (
@@ -326,6 +350,7 @@ export default function TripForm() {
                     placeholder="Выберите комплект БИ"
                     options={biKitsFromWarehouse.map(k => ({ value: k, label: k }))}
                     triggerClassName="flex-1"
+                    disabled={isReadOnly}
                   />
                 ) : (
                   <Input
@@ -333,9 +358,11 @@ export default function TripForm() {
                     value={kit}
                     onChange={e => updateBiKit(idx, e.target.value)}
                     placeholder="Номер комплекта БИ"
+                    readOnly={isReadOnly}
+                    disabled={isReadOnly}
                   />
                 )}
-                {(form.bi_kits_list || ['']).length > 1 && (
+                {!isReadOnly && (form.bi_kits_list || ['']).length > 1 && (
                   <button type="button" onClick={() => removeBiKit(idx)} className="text-destructive hover:opacity-70">
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -352,6 +379,8 @@ export default function TripForm() {
             onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
             placeholder="Опишите причину выезда..."
             rows={2}
+            readOnly={isReadOnly}
+            disabled={isReadOnly}
           />
         </div>
 
@@ -364,6 +393,7 @@ export default function TripForm() {
             value={form.sections}
             onChange={sections => setForm(f => ({ ...f, sections }))}
             showErrors={showErrors}
+            readOnly={isReadOnly}
           />
         </div>
 
@@ -374,15 +404,19 @@ export default function TripForm() {
             {form.photos.map((url, i) => (
               <div key={i} className="relative w-16 h-16">
                 <img src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
-                <button type="button" onClick={() => removePhoto(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
-                  <X className="w-2.5 h-2.5" />
-                </button>
+                {!isReadOnly && (
+                  <button type="button" onClick={() => removePhoto(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                )}
               </div>
             ))}
-            <label className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
-              <Camera className="w-5 h-5 text-muted-foreground" />
-              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-            </label>
+            {!isReadOnly && (
+              <label className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                <Camera className="w-5 h-5 text-muted-foreground" />
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+              </label>
+            )}
           </div>
         </div>
 
@@ -393,34 +427,40 @@ export default function TripForm() {
             onChange={e => setForm(f => ({ ...f, comment: e.target.value }))}
             placeholder="Дополнительный комментарий..."
             rows={2}
+            readOnly={isReadOnly}
+            disabled={isReadOnly}
           />
         </div>
       </div>
 
       {/* Фиксированные кнопки снизу */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-t border-border px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex gap-2 max-w-lg mx-auto">
-        <Button
-          variant="outline"
-          className="h-11 px-3"
-          onClick={handleSave}
-          disabled={saveMutation.isPending || sending}
-        >
-          {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        </Button>
+        {!isReadOnly && (
+          <Button
+            variant="outline"
+            className="h-11 px-3"
+            onClick={handleSave}
+            disabled={saveMutation.isPending || sending}
+          >
+            {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          </Button>
+        )}
+
+        {!isReadOnly && (
+          <Button
+            className="flex-1 h-11"
+            onClick={handleSubmitAndSend}
+            disabled={saveMutation.isPending || sending || !checklistDone}
+            title={!checklistDone ? 'Заполните все пункты чек-листа' : ''}
+          >
+            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+            Отправить отчёт
+          </Button>
+        )}
 
         <Button
-          className="flex-1 h-11"
-          onClick={handleSubmitAndSend}
-          disabled={saveMutation.isPending || sending || !checklistDone}
-          title={!checklistDone ? 'Заполните все пункты чек-листа' : ''}
-        >
-          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-          Отправить отчёт
-        </Button>
-
-        <Button
           variant="outline"
-          className="flex-1 h-11"
+          className={isReadOnly ? 'flex-1 h-11' : 'flex-1 h-11'}
           onClick={handleExportExcel}
           title="Скачать Excel"
         >

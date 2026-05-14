@@ -344,22 +344,25 @@ export function isChecklistComplete(sections) {
   });
 }
 
-export default function ChecklistForm({ value = {}, onChange, showErrors = false }) {
+export default function ChecklistForm({ value = {}, onChange, showErrors = false, readOnly = false }) {
   const handleSectionChange = (sectionKey, sectionData) => {
+    if (readOnly) return;
     onChange({ ...value, [sectionKey]: sectionData });
   };
 
   return (
-    <div className="space-y-2">
-      {CHECKLIST_SECTIONS.map(section => (
-        <SectionBlock
-          key={section.key}
-          section={section}
-          sectionData={value[section.key]}
-          onChange={data => handleSectionChange(section.key, data)}
-          showErrors={showErrors}
-        />
-      ))}
+    <div className={readOnly ? 'pointer-events-none opacity-75' : 'space-y-2'}>
+      <div className="space-y-2">
+        {CHECKLIST_SECTIONS.map(section => (
+          <SectionBlock
+            key={section.key}
+            section={section}
+            sectionData={value[section.key]}
+            onChange={data => handleSectionChange(section.key, data)}
+            showErrors={showErrors}
+          />
+        ))}
+      </div>
     </div>
   );
 }
