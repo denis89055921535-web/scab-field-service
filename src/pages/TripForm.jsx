@@ -293,7 +293,7 @@ export default function TripForm() {
             <SelectContent>
               <SelectItem value="maintenance">Обслуживание оборуд.</SelectItem>
               <SelectItem value="bi_accident">Авария БИ</SelectItem>
-              <SelectItem value="bi_inspection">Инспекция БИ</SelectItem>
+              <SelectItem value="bi_inspection">Инспекция/Перечиповка БИ</SelectItem>
               <SelectItem value="equipment_install">Монтаж оборуд.</SelectItem>
               <SelectItem value="equipment_uninstall">Демонтаж оборуд.</SelectItem>
             </SelectContent>
