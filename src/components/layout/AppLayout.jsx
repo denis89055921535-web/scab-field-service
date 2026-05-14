@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import BottomNav from './BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +9,11 @@ const TAB_PATHS = ['/', '/trips', '/warehouse', '/incidents', '/profile'];
 export default function AppLayout() {
   const location = useLocation();
   const isTabRoute = TAB_PATHS.includes(location.pathname);
+
+  useEffect(() => {
+    document.body.style.overflow = isTabRoute ? '' : 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [isTabRoute]);
 
   return (
     <div className="min-h-screen bg-background font-inter">
