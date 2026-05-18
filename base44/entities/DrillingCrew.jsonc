@@ -41,9 +41,12 @@
     "status": {
       "type": "string",
       "enum": [
+        "moving",
+        "drilling_start",
+        "waiting_install",
+        "dismount",
         "in_work",
-        "waiting",
-        "inactive"
+        "no_rfid"
       ],
       "description": "Current status"
     }
