@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Wifi, WifiOff, MapPin, Cpu, Box, Layers, ChevronDown } from 'lucide-react';
-import { crewStatuses } from '@/lib/statusConfig';
+import { Wifi, WifiOff, MapPin, Cpu, Box, Layers, ChevronDown, Calendar, User, Briefcase, ChevronRight } from 'lucide-react';
+import { crewStatuses, tripStatuses } from '@/lib/statusConfig';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import StatusBadge from '@/components/common/StatusBadge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +15,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export default function CrewDetail({ crew, onStatusChange }) {
+const workTypeLabels = {
+  maintenance: 'Обслуживание',
+  bi_accident: 'Авария БИ',
+  bi_inspection: 'Инспекция БИ',
+  equipment_install: 'Монтаж',
+  equipment_uninstall: 'Демонтаж',
+};
+
+export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
+  const navigate = useNavigate();
   const status = crewStatuses[crew.status] || crewStatuses.moving;
 
   return (
@@ -72,6 +85,44 @@ export default function CrewDetail({ crew, onStatusChange }) {
           <InfoRow icon={Box} label="Тип шкафов" value={crew.cabinet_type || '—'} />
         </CardContent>
       </Card>
+
+      {/* Trip history */}
+      <div>
+        <h3 className="text-sm font-semibold mb-2">История выездов ({tripHistory.length})</h3>
+        {tripHistory.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-3 text-center">Выездов по данной бригаде нет</p>
+        ) : (
+          <div className="space-y-2">
+            {tripHistory.map(trip => (
+              <Card
+                key={trip.id}
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => navigate(`/trips/${trip.id}`)}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Calendar className="w-3 h-3" />
+                      {trip.trip_date ? format(new Date(trip.trip_date), 'd MMM yyyy', { locale: ru }) : '—'}
+                    </div>
+                    <StatusBadge statusMap={tripStatuses} status={trip.status} />
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-0.5">
+                    <User className="w-3 h-3" />
+                    {trip.employee_name || '—'}
+                  </div>
+                  {trip.work_type && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Briefcase className="w-3 h-3" />
+                      {workTypeLabels[trip.work_type] || trip.work_type}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

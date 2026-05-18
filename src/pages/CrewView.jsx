@@ -25,6 +25,12 @@ export default function CrewView() {
     },
   });
 
+  const { data: tripHistory = [] } = useQuery({
+    queryKey: ['crew-trips', crew?.crew_number],
+    queryFn: () => base44.entities.TripLog.filter({ crew_number: crew.crew_number }, '-trip_date'),
+    enabled: !!crew?.crew_number,
+  });
+
   if (isLoading) {
     return (
       <div>
@@ -51,7 +57,7 @@ export default function CrewView() {
     <div>
       <PageHeader title={`Бригада №${crew.crew_number}`} backTo="/" />
       <div className="p-4">
-        <CrewDetail crew={crew} onStatusChange={updateStatus} />
+        <CrewDetail crew={crew} onStatusChange={updateStatus} tripHistory={tripHistory} />
       </div>
     </div>
   );
