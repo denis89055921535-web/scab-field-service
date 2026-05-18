@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import ChecklistForm, { isChecklistComplete } from '@/components/trips/ChecklistSection';
 import { exportToExcel, sendReportByEmail } from '@/lib/tripExport';
+import { crewStatuses } from '@/lib/statusConfig';
 
 const TRIP_STATUSES = {
   draft: 'Черновик',
@@ -28,6 +29,7 @@ const EMPTY_FORM = {
   field_name: '',
   drill_type: '',
   work_type: '',
+  crew_status: '',
   bi_kits_numbers: '',
   bi_kits_list: [''],
   module_type: '',
@@ -321,6 +323,17 @@ export default function TripForm() {
               { value: 'equipment_install', label: 'Монтаж оборуд.' },
               { value: 'equipment_uninstall', label: 'Демонтаж оборуд.' },
             ]}
+          />
+        </div>
+
+        <div>
+          <Label className="text-xs">Статус бригады</Label>
+          <MobileSelect
+            value={form.crew_status}
+            onValueChange={v => setForm(f => ({ ...f, crew_status: v }))}
+            placeholder="Выберите статус бригады"
+            disabled={isReadOnly}
+            options={Object.entries(crewStatuses).map(([k, { label }]) => ({ value: k, label }))}
           />
         </div>
 

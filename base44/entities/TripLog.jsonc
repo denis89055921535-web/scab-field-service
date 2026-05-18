@@ -38,6 +38,18 @@
       ],
       "description": "\u0422\u0438\u043f \u0440\u0430\u0431\u043e\u0442"
     },
+    "crew_status": {
+      "type": "string",
+      "enum": [
+        "moving",
+        "drilling_start",
+        "waiting_install",
+        "dismount",
+        "in_work",
+        "no_rfid"
+      ],
+      "description": "\u0421\u0442\u0430\u0442\u0443\u0441 \u0431\u0440\u0438\u0433\u0430\u0434\u044b"
+    },
     "bi_kits_numbers": {
       "type": "string",
       "description": "\u041a\u043e\u043c\u043f\u043b\u0435\u043a\u0442 \u0411\u0418"
