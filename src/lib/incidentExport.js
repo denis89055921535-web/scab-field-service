@@ -42,8 +42,11 @@ export async function sendIncidentByEmail(form, email) {
   `.trim();
 
   const { base44 } = await import('@/api/base44Client');
+  const user = await base44.auth.me();
+  if (!user?.email) throw new Error('Email пользователя не определён');
+
   await base44.integrations.Core.SendEmail({
-    to: email,
+    to: user.email,
     subject: `Авария: ${form.object_name || '—'} от ${fmt(form.incident_date)}`,
     body,
   });

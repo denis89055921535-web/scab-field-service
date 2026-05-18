@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import MobileSelect from '@/components/common/MobileSelect';
-import { Plus, Camera, Loader2, AlertTriangle, X, Save, Mail, FileDown, Send } from 'lucide-react';
+import { Plus, Camera, Loader2, AlertTriangle, X, Save, Mail, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import { format } from 'date-fns';
@@ -33,8 +33,6 @@ export default function Incidents() {
   const [editId, setEditId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
 
   const { data: incidents = [], isLoading } = useQuery({
     queryKey: ['incidents'],
@@ -136,20 +134,11 @@ export default function Incidents() {
 
   const handleSave = () => saveMutation.mutate(form);
 
-  const handleSend = () => {
-    const saved = localStorage.getItem('incident_report_email');
-    setEmailInput(saved || '');
-    setEmailDialogOpen(true);
-  };
-
-  const handleSendConfirm = async () => {
-    if (!emailInput) { toast.error('Введите email'); return; }
-    localStorage.setItem('incident_report_email', emailInput);
-    setEmailDialogOpen(false);
+  const handleSend = async () => {
     setSending(true);
     try {
-      await sendIncidentByEmail(form, emailInput);
-      toast.success('Отчёт отправлен на ' + emailInput);
+      await sendIncidentByEmail(form);
+      toast.success('Отчёт отправлен на ваш email');
     } catch {
       toast.error('Ошибка отправки');
     }
@@ -327,30 +316,7 @@ export default function Incidents() {
         )}
       </div>
 
-      {/* Email dialog */}
-      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Отправить отчёт по email</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 mt-2">
-            <div>
-              <Label className="text-xs">Email получателя</Label>
-              <Input
-                type="email"
-                value={emailInput}
-                onChange={e => setEmailInput(e.target.value)}
-                placeholder="example@mail.com"
-                onKeyDown={e => e.key === 'Enter' && handleSendConfirm()}
-              />
-            </div>
-            <Button className="w-full" onClick={handleSendConfirm} disabled={sending}>
-              {sending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-              Отправить
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }

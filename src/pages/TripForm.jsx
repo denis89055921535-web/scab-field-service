@@ -193,15 +193,8 @@ export default function TripForm() {
 
   const handleSendEmail = async (savedTrip) => {
     setSending(true);
-    // Get report email from localStorage (set by admin)
-    const reportEmail = localStorage.getItem('report_email');
-    if (!reportEmail) {
-      toast.error('Email для отчётов не задан. Укажите его в настройках администратора.');
-      setSending(false);
-      return;
-    }
-    await sendReportByEmail(savedTrip || form, reportEmail);
-    toast.success(`Отчёт отправлен на ${reportEmail}`);
+    await sendReportByEmail(savedTrip || form);
+    toast.success('Отчёт отправлен на ваш email');
     setSending(false);
   };
 

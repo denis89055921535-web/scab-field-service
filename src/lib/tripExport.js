@@ -178,8 +178,11 @@ ${checklistHtml}
 ${trip.comment ? `<hr style="margin:16px 0"><p><strong>Комментарий:</strong> ${trip.comment}</p>` : ''}
 `;
 
+  const user = await base44.auth.me();
+  if (!user?.email) throw new Error('Email пользователя не определён');
+
   await base44.integrations.Core.SendEmail({
-    to: toEmail,
+    to: user.email,
     subject: `Отчёт о выезде — Бригада №${trip.crew_number || '—'} — ${trip.trip_date || ''}`,
     body,
   });
