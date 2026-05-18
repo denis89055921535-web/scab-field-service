@@ -101,5 +101,37 @@
     "trip_date",
     "crew_number",
     "employee_name"
-  ]
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "record_condition": {
+            "created_by": "{{user.email}}"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "record_condition": {
+            "created_by": "{{user.email}}"
+          }
+        }
+      ]
+    }
+  }
 }
