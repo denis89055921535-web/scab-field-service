@@ -184,7 +184,7 @@ function PhotoUpload({ photos = [], onAdd, onRemove }) {
   );
 }
 
-function SectionBlock({ section, sectionData = {}, onChange, showErrors }) {
+function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnly }) {
   const [open, setOpen] = useState(false);
 
   const answers = sectionData.answers || {};
@@ -248,59 +248,69 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors }) {
               <div key={field.key} className="space-y-2">
                 <Label className={cn('text-sm font-medium', fieldHasError && 'text-red-500')}>{field.label}</Label>
                 {field.type === 'yesno' && (
-                  <YesNoField
-                    value={answers[field.key]}
-                    onChange={v => setAnswer(field.key, v)}
-                    hasError={fieldHasError}
-                  />
+                  <div className={readOnly ? 'pointer-events-none' : ''}>
+                    <YesNoField
+                      value={answers[field.key]}
+                      onChange={v => setAnswer(field.key, v)}
+                      hasError={fieldHasError}
+                    />
+                  </div>
                 )}
                 {field.type === 'count' && (
-                  <CountField
-                    value={answers[field.key]}
-                    onChange={v => setAnswer(field.key, v)}
-                    options={field.options}
-                    hasError={fieldHasError}
-                  />
+                  <div className={readOnly ? 'pointer-events-none' : ''}>
+                    <CountField
+                      value={answers[field.key]}
+                      onChange={v => setAnswer(field.key, v)}
+                      options={field.options}
+                      hasError={fieldHasError}
+                    />
+                  </div>
                 )}
 
                 {isNo && field.hasPhotoComment && (
                   <div className="ml-0 pl-3 border-l-2 border-red-200 space-y-3">
                     <div>
-                      <Label className={cn('text-xs', needsComment && showErrors ? 'text-red-500' : 'text-muted-foreground')}>
-                        Комментарий {needsComment && showErrors ? '(обязательно)' : ''}
-                      </Label>
+                      <Label className="text-xs text-muted-foreground">Комментарий</Label>
                       <Textarea
                         value={comments[field.key] || ''}
                         onChange={e => setComment(field.key, e.target.value)}
                         placeholder="Опишите проблему..."
                         rows={2}
-                        className={cn('mt-1', needsComment && showErrors && 'border-red-300 focus:border-red-400')}
+                        className="mt-1"
+                        readOnly={readOnly}
+                        disabled={readOnly}
                       />
                     </div>
                     <div>
-                      <Label className={cn('text-xs mb-1 block', needsPhoto && showErrors ? 'text-red-500' : 'text-muted-foreground')}>
-                        Фото {needsPhoto && showErrors ? '(обязательно)' : ''}
-                      </Label>
-                      <PhotoUpload
-                        photos={sectionPhotos[field.key] || []}
-                        onAdd={urls => addPhotos(field.key, urls)}
-                        onRemove={idx => removePhoto(field.key, idx)}
-                      />
+                      <Label className="text-xs mb-1 block text-muted-foreground">Фото</Label>
+                      {readOnly ? (
+                        <div className="flex flex-wrap gap-2">
+                          {(sectionPhotos[field.key] || []).map((url, i) => (
+                            <img key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+                          ))}
+                          {!(sectionPhotos[field.key]?.length) && <span className="text-xs text-muted-foreground">Нет фото</span>}
+                        </div>
+                      ) : (
+                        <PhotoUpload
+                          photos={sectionPhotos[field.key] || []}
+                          onAdd={urls => addPhotos(field.key, urls)}
+                          onRemove={idx => removePhoto(field.key, idx)}
+                        />
+                      )}
                     </div>
                   </div>
                 )}
 
                 {isNo && !field.hasPhotoComment && (
                   <div className="pl-3 border-l-2 border-red-200 space-y-2">
-                    <Label className={cn('text-xs', showErrors ? 'text-red-500' : 'text-muted-foreground')}>
-                      Причина {showErrors ? '(обязательно)' : ''}
-                    </Label>
+                    <Label className="text-xs text-muted-foreground">Причина</Label>
                     <Textarea
                       value={comments[field.key] || ''}
                       onChange={e => setComment(field.key, e.target.value)}
                       placeholder="Укажите причину..."
                       rows={2}
-                      className={cn(needsComment && showErrors && 'border-red-300')}
+                      readOnly={readOnly}
+                      disabled={readOnly}
                     />
                   </div>
                 )}
@@ -312,12 +322,21 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors }) {
           {!hasPerFieldPhotoComment && (
             <>
               <div>
-                <Label className="text-xs text-muted-foreground mb-1 block">Добавить фото</Label>
-                <PhotoUpload
-                  photos={sectionData.sectionPhotos || []}
-                  onAdd={addSectionPhotos}
-                  onRemove={removeSectionPhoto}
-                />
+                <Label className="text-xs text-muted-foreground mb-1 block">Фото</Label>
+                {readOnly ? (
+                  <div className="flex flex-wrap gap-2">
+                    {(sectionData.sectionPhotos || []).map((url, i) => (
+                      <img key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+                    ))}
+                    {!(sectionData.sectionPhotos?.length) && <span className="text-xs text-muted-foreground">Нет фото</span>}
+                  </div>
+                ) : (
+                  <PhotoUpload
+                    photos={sectionData.sectionPhotos || []}
+                    onAdd={addSectionPhotos}
+                    onRemove={removeSectionPhoto}
+                  />
+                )}
               </div>
               <div>
                 <Label className="text-xs text-muted-foreground">Выполненные работы / Комментарии</Label>
@@ -327,6 +346,8 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors }) {
                   placeholder="Опишите выполненные работы..."
                   rows={2}
                   className="mt-1"
+                  readOnly={readOnly}
+                  disabled={readOnly}
                 />
               </div>
             </>
@@ -351,18 +372,17 @@ export default function ChecklistForm({ value = {}, onChange, showErrors = false
   };
 
   return (
-    <div className={readOnly ? 'pointer-events-none opacity-75' : 'space-y-2'}>
-      <div className="space-y-2">
-        {CHECKLIST_SECTIONS.map(section => (
-          <SectionBlock
-            key={section.key}
-            section={section}
-            sectionData={value[section.key]}
-            onChange={data => handleSectionChange(section.key, data)}
-            showErrors={showErrors}
-          />
-        ))}
-      </div>
+    <div className="space-y-2">
+      {CHECKLIST_SECTIONS.map(section => (
+        <SectionBlock
+          key={section.key}
+          section={section}
+          sectionData={value[section.key]}
+          onChange={data => handleSectionChange(section.key, data)}
+          showErrors={showErrors}
+          readOnly={readOnly}
+        />
+      ))}
     </div>
   );
 }
