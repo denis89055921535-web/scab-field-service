@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -26,13 +26,21 @@ export default function Trips() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [crewFilter, setCrewFilter] = useState('all');
+  const [currentUser, setCurrentUser] = useState(null);
   const { containerRef, pullDistance, pulling } = usePullToRefresh(() =>
     queryClient.invalidateQueries({ queryKey: ['trips'] })
   );
 
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+  }, []);
+
   const { data: trips = [], isLoading } = useQuery({
-    queryKey: ['trips'],
-    queryFn: () => base44.entities.TripLog.list('-trip_date'),
+    queryKey: ['trips', currentUser?.email],
+    queryFn: () => currentUser?.role === 'admin'
+      ? base44.entities.TripLog.list('-trip_date')
+      : base44.entities.TripLog.filter({ created_by: currentUser.email }, '-trip_date'),
+    enabled: !!currentUser,
   });
 
   const { data: crews = [] } = useQuery({
