@@ -5,7 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
-import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw, Download } from 'lucide-react';
+import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw, Download, Search, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { exportSummaryToExcel } from '@/lib/tripExport';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import MobileSelect from '@/components/common/MobileSelect';
@@ -27,6 +28,9 @@ export default function Trips() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [crewFilter, setCrewFilter] = useState('all');
+  const [employeeFilter, setEmployeeFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
   const { containerRef, pullDistance, pulling } = usePullToRefresh(() =>
     queryClient.invalidateQueries({ queryKey: ['trips'] })
@@ -49,9 +53,13 @@ export default function Trips() {
     queryFn: () => base44.entities.DrillingCrew.list(),
   });
 
-  const filteredTrips = crewFilter === 'all'
-    ? trips
-    : trips.filter(t => t.crew_number === crewFilter);
+  const filteredTrips = trips.filter(t => {
+    if (crewFilter !== 'all' && t.crew_number !== crewFilter) return false;
+    if (employeeFilter && !t.employee_name?.toLowerCase().includes(employeeFilter.toLowerCase())) return false;
+    if (dateFrom && t.trip_date && t.trip_date < dateFrom) return false;
+    if (dateTo && t.trip_date && t.trip_date > dateTo) return false;
+    return true;
+  });
 
   // Get unique crew numbers from trips for filter options
   const crewNumbers = [...new Set(trips.map(t => t.crew_number).filter(Boolean))].sort();
@@ -89,7 +97,7 @@ export default function Trips() {
         }
       />
 
-      <div className="px-4 pt-3 pb-2">
+      <div className="px-4 pt-3 pb-2 space-y-2">
         <MobileSelect
           value={crewFilter}
           onValueChange={setCrewFilter}
@@ -100,6 +108,45 @@ export default function Trips() {
             ...crewNumbers.map(num => ({ value: num, label: `Бригада №${num}` })),
           ]}
         />
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <Input
+            value={employeeFilter}
+            onChange={e => setEmployeeFilter(e.target.value)}
+            placeholder="Поиск по ФИО сотрудника..."
+            className="h-8 text-xs pl-8 pr-8"
+          />
+          {employeeFilter && (
+            <button onClick={() => setEmployeeFilter('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={e => setDateFrom(e.target.value)}
+              className="h-8 text-xs"
+              placeholder="С"
+            />
+          </div>
+          <div className="flex-1">
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={e => setDateTo(e.target.value)}
+              className="h-8 text-xs"
+              placeholder="По"
+            />
+          </div>
+          {(dateFrom || dateTo) && (
+            <button onClick={() => { setDateFrom(''); setDateTo(''); }} className="text-muted-foreground hover:text-foreground px-1">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="px-4 pb-3">
