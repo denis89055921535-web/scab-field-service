@@ -149,6 +149,7 @@ export function exportToPDF(trip) {
 export function exportSummaryToExcel(trips) {
   const wb = XLSX.utils.book_new();
 
+  // Sheet 1: summary
   const rows = trips.map(trip => ({
     'Дата выезда': trip.trip_date || '',
     'Бригада №': trip.crew_number || '',
@@ -165,13 +166,43 @@ export function exportSummaryToExcel(trips) {
     'Комментарий': trip.comment || '',
   }));
 
-  const ws = XLSX.utils.json_to_sheet(rows);
-  ws['!cols'] = [
+  const ws1 = XLSX.utils.json_to_sheet(rows);
+  ws1['!cols'] = [
     { wch: 14 }, { wch: 12 }, { wch: 20 }, { wch: 28 }, { wch: 20 },
     { wch: 18 }, { wch: 24 }, { wch: 16 }, { wch: 30 }, { wch: 18 },
     { wch: 14 }, { wch: 20 }, { wch: 30 },
   ];
-  XLSX.utils.book_append_sheet(wb, ws, 'Сводный отчёт');
+  XLSX.utils.book_append_sheet(wb, ws1, 'Сводный отчёт');
+
+  // Sheet 2: checklists for all trips
+  const checklistRows = [];
+  trips.forEach(trip => {
+    const tripLabel = `${trip.trip_date || '—'} / Бригада №${trip.crew_number || '—'} / ${trip.employee_name || '—'}`;
+    CHECKLIST_SECTIONS.forEach(section => {
+      const sectionData = trip.sections?.[section.key] || {};
+      const answers = sectionData.answers || {};
+      const comments = sectionData.comments || {};
+      section.fields.forEach(field => {
+        let answer = answers[field.key];
+        if (field.type === 'count') {
+          answer = answer ? `${answer} антенн` : '—';
+        } else {
+          answer = answer === 'yes' ? 'Да' : answer === 'no' ? 'Нет' : '—';
+        }
+        checklistRows.push({
+          'Выезд': tripLabel,
+          'Раздел': section.title,
+          'Пункт': field.label,
+          'Ответ': answer,
+          'Комментарий': comments[field.key] || sectionData.comment || '',
+        });
+      });
+    });
+  });
+
+  const ws2 = XLSX.utils.json_to_sheet(checklistRows);
+  ws2['!cols'] = [{ wch: 45 }, { wch: 30 }, { wch: 55 }, { wch: 10 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Чек-листы');
 
   const today = new Date().toISOString().slice(0, 10);
   XLSX.writeFile(wb, `Сводный_отчёт_выезды_${today}.xlsx`);
