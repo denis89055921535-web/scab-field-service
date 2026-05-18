@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, MapPin } from 'lucide-react';
+import { Package, MapPin, ChevronRight } from 'lucide-react';
 import PageHeader from '@/components/common/PageHeader';
+import AssetDetail from '@/components/warehouse/AssetDetail';
 
 const assetTypes = {
   bi_kit: 'Комплект БИ',
@@ -30,6 +31,7 @@ const locationConfig = {
 export default function Warehouse() {
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
+  const [selectedAsset, setSelectedAsset] = useState(null);
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets'],
@@ -48,6 +50,17 @@ export default function Warehouse() {
     crew: assets.filter(a => a.location_type === 'crew').length,
     repair: assets.filter(a => a.location_type === 'repair').length,
   };
+
+  if (selectedAsset) {
+    return (
+      <div className="pb-24">
+        <PageHeader title={selectedAsset.name} onBack={() => setSelectedAsset(null)} />
+        <div className="px-4 pt-4">
+          <AssetDetail asset={selectedAsset} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-24">
@@ -105,7 +118,7 @@ export default function Warehouse() {
               const loc = locationConfig[asset.location_type];
               const cond = conditionConfig[asset.condition];
               return (
-                <Card key={asset.id} className="p-4">
+                <Card key={asset.id} className="p-4 cursor-pointer active:opacity-70" onClick={() => setSelectedAsset(asset)}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{asset.name}</div>
@@ -117,16 +130,19 @@ export default function Warehouse() {
                         <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{asset.notes}</div>
                       )}
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cond?.color}`}>
-                        {cond?.label}
-                      </span>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${loc?.color}`}>
-                        {loc?.label}
-                      </span>
-                      {asset.location_type === 'crew' && asset.crew_number && (
-                        <span className="text-xs text-muted-foreground">Бригада {asset.crew_number}</span>
-                      )}
+                    <div className="flex items-start gap-2 shrink-0">
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cond?.color}`}>
+                          {cond?.label}
+                        </span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${loc?.color}`}>
+                          {loc?.label}
+                        </span>
+                        {asset.location_type === 'crew' && asset.crew_number && (
+                          <span className="text-xs text-muted-foreground">Бригада {asset.crew_number}</span>
+                        )}
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground mt-0.5" />
                     </div>
                   </div>
                 </Card>
