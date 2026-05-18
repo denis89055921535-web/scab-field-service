@@ -3,9 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, MapPin, ChevronRight } from 'lucide-react';
+import { Package, MapPin, ChevronRight, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/common/PageHeader';
 import AssetDetail from '@/components/warehouse/AssetDetail';
+import AssetEditForm from '@/components/warehouse/AssetEditForm';
 
 const assetTypes = {
   bi_kit: 'Комплект БИ',
@@ -32,6 +34,7 @@ export default function Warehouse() {
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
   const [selectedAsset, setSelectedAsset] = useState(null);
+  const [editingAsset, setEditingAsset] = useState(null);
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets'],
@@ -51,10 +54,35 @@ export default function Warehouse() {
     repair: assets.filter(a => a.location_type === 'repair').length,
   };
 
+  if (editingAsset) {
+    return (
+      <div className="pb-24">
+        <PageHeader title="Редактирование" onBack={() => setEditingAsset(null)} />
+        <div className="px-4 pt-4">
+          <AssetEditForm
+            asset={editingAsset}
+            onSaved={(updated) => {
+              setSelectedAsset(updated);
+              setEditingAsset(null);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (selectedAsset) {
     return (
       <div className="pb-24">
-        <PageHeader title={selectedAsset.name} onBack={() => setSelectedAsset(null)} />
+        <PageHeader
+          title={selectedAsset.name}
+          onBack={() => setSelectedAsset(null)}
+          actions={
+            <Button variant="ghost" size="icon" onClick={() => setEditingAsset(selectedAsset)}>
+              <Pencil className="w-4 h-4" />
+            </Button>
+          }
+        />
         <div className="px-4 pt-4">
           <AssetDetail asset={selectedAsset} />
         </div>
