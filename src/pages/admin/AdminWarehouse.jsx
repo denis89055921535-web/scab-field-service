@@ -33,8 +33,8 @@ const locationConfig = {
 };
 
 const emptyForm = {
-  name: '', asset_type: 'bi_kit', serial_number: '', condition: 'working',
-  location_type: 'warehouse', crew_number: '', notes: '', last_inspection_date: '',
+  name: '', asset_type: 'bi_kit', serial_number: '', manufacturer: '', commissioned_date: '',
+  condition: 'working', location_type: 'warehouse', crew_number: '', notes: '', last_inspection_date: '',
 };
 
 export default function AdminWarehouse() {
@@ -79,6 +79,8 @@ export default function AdminWarehouse() {
       name: asset.name || '',
       asset_type: asset.asset_type || 'bi_kit',
       serial_number: asset.serial_number || '',
+      manufacturer: asset.manufacturer || '',
+      commissioned_date: asset.commissioned_date || '',
       condition: asset.condition || 'working',
       location_type: asset.location_type || 'warehouse',
       crew_number: asset.crew_number || '',
@@ -141,6 +143,14 @@ export default function AdminWarehouse() {
               <div>
                 <Label className="text-xs">Серийный номер</Label>
                 <Input value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} placeholder="SN-..." />
+              </div>
+              <div>
+                <Label className="text-xs">Производитель</Label>
+                <Input value={form.manufacturer} onChange={e => setForm({ ...form, manufacturer: e.target.value })} placeholder="Например: ООО «ТехСервис»" />
+              </div>
+              <div>
+                <Label className="text-xs">Дата ввода в работу</Label>
+                <Input type="date" value={form.commissioned_date} onChange={e => setForm({ ...form, commissioned_date: e.target.value })} />
               </div>
               <div>
                 <Label className="text-xs">Состояние *</Label>
