@@ -1,12 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Skeleton } from '@/components/ui/skeleton';
 import PageHeader from '@/components/common/PageHeader';
 import CrewDetail from '@/components/crews/CrewDetail';
 
 export default function CrewView() {
-  const params = new URLSearchParams(window.location.search);
   const crewId = window.location.pathname.split('/crew/')[1];
+  const queryClient = useQueryClient();
 
   const { data: crew, isLoading } = useQuery({
     queryKey: ['crew', crewId],
@@ -15,6 +15,14 @@ export default function CrewView() {
       return crews[0];
     },
     enabled: !!crewId,
+  });
+
+  const { mutate: updateStatus } = useMutation({
+    mutationFn: (status) => base44.entities.DrillingCrew.update(crewId, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['crew', crewId] });
+      queryClient.invalidateQueries({ queryKey: ['crews'] });
+    },
   });
 
   if (isLoading) {
@@ -43,7 +51,7 @@ export default function CrewView() {
     <div>
       <PageHeader title={`Бригада №${crew.crew_number}`} backTo="/" />
       <div className="p-4">
-        <CrewDetail crew={crew} />
+        <CrewDetail crew={crew} onStatusChange={updateStatus} />
       </div>
     </div>
   );

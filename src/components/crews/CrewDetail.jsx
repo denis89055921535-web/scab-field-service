@@ -1,11 +1,18 @@
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Wifi, WifiOff, MapPin, Cpu, Box, Layers } from 'lucide-react';
+import { Wifi, WifiOff, MapPin, Cpu, Box, Layers, ChevronDown } from 'lucide-react';
 import { crewStatuses } from '@/lib/statusConfig';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-export default function CrewDetail({ crew }) {
-  const status = crewStatuses[crew.status] || crewStatuses.inactive;
+export default function CrewDetail({ crew, onStatusChange }) {
+  const status = crewStatuses[crew.status] || crewStatuses.moving;
 
   return (
     <div className="space-y-4">
@@ -23,9 +30,31 @@ export default function CrewDetail({ crew }) {
 
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Бригада №{crew.crew_number}</h2>
-        <Badge variant="outline" className={cn('font-medium border', status.color)}>
-          {status.label}
-        </Badge>
+        {onStatusChange ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border', status.color)}>
+                {status.label}
+                <ChevronDown className="w-3 h-3 opacity-70" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {Object.entries(crewStatuses).map(([key, cfg]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => onStatusChange(key)}
+                  className={cn('text-xs', crew.status === key && 'font-semibold')}
+                >
+                  {cfg.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Badge variant="outline" className={cn('font-medium border', status.color)}>
+            {status.label}
+          </Badge>
+        )}
       </div>
 
       <Card>
