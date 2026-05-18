@@ -146,6 +146,37 @@ export function exportToPDF(trip) {
   doc.save(fileName);
 }
 
+export function exportSummaryToExcel(trips) {
+  const wb = XLSX.utils.book_new();
+
+  const rows = trips.map(trip => ({
+    'Дата выезда': trip.trip_date || '',
+    'Бригада №': trip.crew_number || '',
+    'Месторождение': trip.field_name || '',
+    'ФИО сотрудника': trip.employee_name || '',
+    'Должность': trip.position || '',
+    'Тип буровой': trip.drill_type || '',
+    'Тип работ': WORK_TYPE_LABELS[trip.work_type] || trip.work_type || '',
+    'Комплект БИ': trip.bi_kits_numbers || '',
+    'Причина выезда': trip.reason || '',
+    'Модуль считывания': trip.module_type || '',
+    'Шкаф': trip.cabinet_type || '',
+    'Статус выезда': TRIP_STATUS_LABELS[trip.status] || trip.status || '',
+    'Комментарий': trip.comment || '',
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 14 }, { wch: 12 }, { wch: 20 }, { wch: 28 }, { wch: 20 },
+    { wch: 18 }, { wch: 24 }, { wch: 16 }, { wch: 30 }, { wch: 18 },
+    { wch: 14 }, { wch: 20 }, { wch: 30 },
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Сводный отчёт');
+
+  const today = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Сводный_отчёт_выезды_${today}.xlsx`);
+}
+
 export async function sendReportByEmail(trip, toEmail) {
   const checklistRows = getChecklistRows(trip.sections);
   const checklistHtml = CHECKLIST_SECTIONS.map(section => {

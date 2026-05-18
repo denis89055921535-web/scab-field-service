@@ -5,7 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
-import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw } from 'lucide-react';
+import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw, Download } from 'lucide-react';
+import { exportSummaryToExcel } from '@/lib/tripExport';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import MobileSelect from '@/components/common/MobileSelect';
 import { format } from 'date-fns';
@@ -65,14 +66,26 @@ export default function Trips() {
       <PageHeader
         title="Журнал выездов"
         actions={
-          <Button
-            size="sm"
-            className="h-8 text-xs"
-            onClick={() => navigate('/trips/new')}
-          >
-            <Plus className="w-3.5 h-3.5 mr-1" />
-            Новый
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs"
+              onClick={() => exportSummaryToExcel(filteredTrips)}
+              disabled={filteredTrips.length === 0}
+            >
+              <Download className="w-3.5 h-3.5 mr-1" />
+              Сводный
+            </Button>
+            <Button
+              size="sm"
+              className="h-8 text-xs"
+              onClick={() => navigate('/trips/new')}
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Новый
+            </Button>
+          </div>
         }
       />
 
