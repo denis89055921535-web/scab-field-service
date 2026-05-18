@@ -52,8 +52,8 @@ export default function TripForm() {
   const [showErrors, setShowErrors] = useState(false);
   const [sending, setSending] = useState(false);
 
-  // Запрет редактирования для сохранённых (не черновик) выездов
-  const isReadOnly = !isNew && form.status !== 'draft';
+  // Запрет редактирования для любых сохранённых выездов
+  const isReadOnly = !isNew;
 
   const { data: crews = [] } = useQuery({
     queryKey: ['crews'],
