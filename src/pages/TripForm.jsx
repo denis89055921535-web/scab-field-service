@@ -10,7 +10,7 @@ import { Save, Loader2, Camera, X, FileDown, Mail, Plus, Trash2 } from 'lucide-r
 import MobileSelect from '@/components/common/MobileSelect';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
-import ChecklistForm, { isChecklistComplete } from '@/components/trips/ChecklistSection';
+import ChecklistForm from '@/components/trips/ChecklistSection';
 import { exportToExcel, sendReportByEmail } from '@/lib/tripExport';
 import { crewStatuses } from '@/lib/statusConfig';
 
@@ -183,15 +183,8 @@ export default function TripForm() {
   };
 
   const handleSubmit = () => {
-    if (!isChecklistComplete(form.sections)) {
-      setShowErrors(true);
-      toast.error('Заполните все обязательные поля чек-листа');
-      return;
-    }
     saveMutation.mutate({ ...form, status: 'completed' });
   };
-
-  const checklistDone = isChecklistComplete(form.sections);
 
   const handleSendEmail = async (savedTrip) => {
     setSending(true);
@@ -201,11 +194,6 @@ export default function TripForm() {
   };
 
   const handleSubmitAndSend = async () => {
-    if (!isChecklistComplete(form.sections)) {
-      setShowErrors(true);
-      toast.error('Заполните все обязательные поля чек-листа');
-      return;
-    }
     const data = { ...form, status: 'completed' };
     saveMutation.mutate(data, {
       onSuccess: async (saved) => {
@@ -456,8 +444,7 @@ export default function TripForm() {
           <Button
             className="flex-1 h-11"
             onClick={handleSubmitAndSend}
-            disabled={saveMutation.isPending || sending || !checklistDone}
-            title={!checklistDone ? 'Заполните все пункты чек-листа' : ''}
+            disabled={saveMutation.isPending || sending}
           >
             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
             Отправить отчёт
