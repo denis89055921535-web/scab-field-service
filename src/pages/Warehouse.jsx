@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/common/PageHeader';
 import AssetDetail from '@/components/warehouse/AssetDetail';
 import AssetEditForm from '@/components/warehouse/AssetEditForm';
+import { usePartner } from '@/lib/PartnerContext';
 
 const assetTypes = {
   bi_kit: 'Комплект БИ',
@@ -31,6 +32,7 @@ const locationConfig = {
 };
 
 export default function Warehouse() {
+  const { partner } = usePartner();
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
   const [selectedAsset, setSelectedAsset] = useState(null);
@@ -44,7 +46,8 @@ export default function Warehouse() {
   const filtered = assets.filter(a => {
     const byType = filterType === 'all' || a.asset_type === filterType;
     const byLoc = filterLocation === 'all' || a.location_type === filterLocation;
-    return byType && byLoc;
+    const byPartner = !partner || !a.partner || a.partner === partner;
+    return byType && byLoc && byPartner;
   });
 
   const stats = {
@@ -92,7 +95,7 @@ export default function Warehouse() {
 
   return (
     <div className="pb-24">
-      <PageHeader title="Склад оборудования" />
+      <PageHeader title={partner ? `Склад — ${partner}` : 'Склад оборудования'} />
 
       <div className="px-4 pt-4 space-y-4">
         {/* Статистика */}

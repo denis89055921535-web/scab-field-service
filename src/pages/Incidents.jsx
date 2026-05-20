@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import { format } from 'date-fns';
 import { exportIncidentToExcel, sendIncidentByEmail } from '@/lib/incidentExport';
+import { usePartner } from '@/lib/PartnerContext';
 
 const emptyForm = {
   incident_date: '',
@@ -28,6 +29,7 @@ const emptyForm = {
 
 export default function Incidents() {
   const queryClient = useQueryClient();
+  const { partner } = usePartner();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
@@ -132,7 +134,7 @@ export default function Incidents() {
     setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
   };
 
-  const handleSave = () => saveMutation.mutate(form);
+  const handleSave = () => saveMutation.mutate({ ...form, partner: partner || '' });
 
   const handleSend = async () => {
     setSending(true);
@@ -149,7 +151,7 @@ export default function Incidents() {
 
   return (
     <div className="pb-24">
-      <PageHeader title="Аварии" />
+      <PageHeader title={partner ? `Аварии — ${partner}` : 'Аварии'} />
 
       <div className="px-4 pt-4 space-y-3">
         <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
@@ -162,6 +164,12 @@ export default function Incidents() {
             <DialogHeader>
               <DialogTitle>{isReadOnly ? 'Просмотр аварии' : 'Новая авария'}</DialogTitle>
             </DialogHeader>
+
+            {form.partner && (
+              <div className="px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium">
+                Партнёр: {form.partner}
+              </div>
+            )}
 
             {isReadOnly && (
               <div className="px-0 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 text-center">
@@ -283,13 +291,13 @@ export default function Incidents() {
 
         {isLoading ? (
           <div className="text-center text-muted-foreground py-12">Загрузка...</div>
-        ) : incidents.length === 0 ? (
+        ) : incidents.filter(i => !partner || !i.partner || i.partner === partner).length === 0 ? (
           <div className="text-center text-muted-foreground py-12">
             <AlertTriangle className="w-10 h-10 mx-auto mb-2 opacity-30" />
             <p>Аварий не зарегистрировано</p>
           </div>
         ) : (
-          incidents.map(incident => (
+          incidents.filter(i => !partner || !i.partner || i.partner === partner).map(incident => (
             <Card key={incident.id} className="px-3 py-2.5 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => openEdit(incident)}>
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />

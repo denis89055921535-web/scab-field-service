@@ -13,6 +13,7 @@ import PageHeader from '@/components/common/PageHeader';
 import ChecklistForm from '@/components/trips/ChecklistSection';
 import { exportToExcel, sendReportByEmail } from '@/lib/tripExport';
 import { crewStatuses } from '@/lib/statusConfig';
+import { usePartner } from '@/lib/PartnerContext';
 
 const TRIP_STATUSES = {
   draft: 'Черновик',
@@ -40,6 +41,7 @@ const EMPTY_FORM = {
   photos: [],
   checklist: {},
   sections: {},
+  partner: '',
 };
 
 export default function TripForm() {
@@ -50,7 +52,8 @@ export default function TripForm() {
     : null;
   const isNew = tripId === 'new';
 
-  const [form, setForm] = useState(EMPTY_FORM);
+  const { partner } = usePartner();
+  const [form, setForm] = useState({ ...EMPTY_FORM, partner: partner || '' });
   const [showErrors, setShowErrors] = useState(false);
   const [sending, setSending] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
@@ -84,7 +87,7 @@ export default function TripForm() {
   useEffect(() => {
     base44.auth.me().then(user => {
       if (user && !form.employee_name) {
-        setForm(f => ({ ...f, employee_name: user.full_name || '' }));
+        setForm(f => ({ ...f, employee_name: user.full_name || '', partner: partner || '' }));
       }
     }).catch(() => {});
   }, []);
@@ -279,6 +282,12 @@ export default function TripForm() {
             disabled={isReadOnly}
           />
         </div>
+
+        {form.partner && (
+          <div className="px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium">
+            Партнёр: {form.partner}
+          </div>
+        )}
 
         <div>
           <Label className="text-xs">Должность</Label>

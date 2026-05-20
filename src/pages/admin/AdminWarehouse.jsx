@@ -32,9 +32,12 @@ const locationConfig = {
   repair: { label: 'В ремонте', color: 'bg-orange-100 text-orange-800' },
 };
 
+const PARTNERS = ['ИНК', 'Газпром Бурение', 'МУБР'];
+
 const emptyForm = {
   name: '', asset_type: 'bi_kit', serial_number: '', manufacturer: '', commissioned_date: '',
   condition: 'working', location_type: 'warehouse', crew_number: '', notes: '', last_inspection_date: '',
+  partner: '',
 };
 
 export default function AdminWarehouse() {
@@ -86,6 +89,7 @@ export default function AdminWarehouse() {
       crew_number: asset.crew_number || '',
       notes: asset.notes || '',
       last_inspection_date: asset.last_inspection_date || '',
+      partner: asset.partner || '',
     });
     setEditId(asset.id);
     setOpen(true);
@@ -194,6 +198,16 @@ export default function AdminWarehouse() {
                 <Input type="date" value={form.last_inspection_date} onChange={e => setForm({ ...form, last_inspection_date: e.target.value })} />
               </div>
               <div>
+                <Label className="text-xs">Партнёр</Label>
+                <Select value={form.partner || ''} onValueChange={v => setForm({ ...form, partner: v })}>
+                  <SelectTrigger><SelectValue placeholder="Выберите партнёра" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Не указан</SelectItem>
+                    {PARTNERS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label className="text-xs">Примечания</Label>
                 <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="resize-none" />
               </div>
@@ -256,6 +270,7 @@ export default function AdminWarehouse() {
                 <TableHead>Серийный №</TableHead>
                 <TableHead>Состояние</TableHead>
                 <TableHead>Местоположение</TableHead>
+                <TableHead>Партнёр</TableHead>
                 <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
@@ -287,13 +302,14 @@ export default function AdminWarehouse() {
                         )}
                       </div>
                     </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{asset.partner || '—'}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(asset)}>
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteMutation.mutate(asset.id)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(asset)}>
+                       <Pencil className="w-3.5 h-3.5" />
+                     </Button>
+                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteMutation.mutate(asset.id)}>
+                       <Trash2 className="w-3.5 h-3.5" />
+                     </Button>
                     </TableCell>
                   </TableRow>
                 );

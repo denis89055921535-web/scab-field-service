@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Loader2 } from 'lucide-react';
+import { usePartner } from '@/lib/PartnerContext';
 import { toast } from 'sonner';
 
 const assetTypes = {
@@ -28,8 +29,11 @@ const locationOptions = [
   { value: 'repair', label: 'В ремонте' },
 ];
 
+const PARTNERS = ['ИНК', 'Газпром Бурение', 'МУБР'];
+
 export default function AssetEditForm({ asset, onSaved }) {
-  const [form, setForm] = useState({ ...asset });
+  const { partner } = usePartner();
+  const [form, setForm] = useState({ ...asset, partner: asset.partner || partner || '' });
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
@@ -113,6 +117,16 @@ export default function AssetEditForm({ asset, onSaved }) {
         <Input type="date" value={form.last_inspection_date || ''} onChange={e => set('last_inspection_date', e.target.value)} />
       </div>
 
+      <div>
+        <Label className="text-xs">Партнёр</Label>
+        <Select value={form.partner || ''} onValueChange={v => set('partner', v)}>
+          <SelectTrigger><SelectValue placeholder="Выберите партнёра" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>Не указан</SelectItem>
+            {PARTNERS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
       <div>
         <Label className="text-xs">Примечания</Label>
         <Textarea value={form.notes || ''} onChange={e => set('notes', e.target.value)} placeholder="Примечания..." rows={3} />

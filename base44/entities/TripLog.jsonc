@@ -29,13 +29,6 @@
     },
     "work_type": {
       "type": "string",
-      "enum": [
-        "maintenance",
-        "bi_accident",
-        "bi_inspection",
-        "equipment_install",
-        "equipment_uninstall"
-      ],
       "description": "\u0422\u0438\u043f \u0440\u0430\u0431\u043e\u0442"
     },
     "crew_status": {
@@ -111,6 +104,17 @@
     "geo_timestamp": {
       "type": "string",
       "description": "\u0412\u0440\u0435\u043c\u044f \u043f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u044f \u0433\u0435\u043e\u043f\u043e\u0437\u0438\u0446\u0438\u0438"
+    },
+    "partner": {
+      "type": "string",
+      "description": "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u0440\u0442\u043d\u0451\u0440\u0430 (\u0418\u041d\u041a, \u0413\u0430\u0437\u043f\u0440\u043e\u043c \u0411\u0443\u0440\u0435\u043d\u0438\u0435, \u041c\u0423\u0411\u0420)"
+    },
+    "bi_kits_list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "\u0421\u043f\u0438\u0441\u043e\u043a \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432 \u0411\u0418"
     }
   },
   "required": [

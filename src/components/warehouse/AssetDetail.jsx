@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, MapPin, Hash, Wrench, Calendar, Building2, FileText } from 'lucide-react';
+import { Package, MapPin, Hash, Wrench, Calendar, Building2, FileText, Users } from 'lucide-react';
 
 const assetTypes = {
   bi_kit: 'Комплект БИ',
@@ -67,6 +67,7 @@ export default function AssetDetail({ asset }) {
           <InfoRow icon={Calendar} label="Дата ввода в работу" value={formatDate(asset.commissioned_date)} />
           <InfoRow icon={MapPin} label="Бригада" value={asset.location_type === 'crew' && asset.crew_number ? `Бригада ${asset.crew_number}` : null} />
           <InfoRow icon={Wrench} label="Последняя инспекция" value={formatDate(asset.last_inspection_date)} />
+          <InfoRow icon={Users} label="Партнёр" value={asset.partner} />
           <InfoRow icon={FileText} label="Примечания" value={asset.notes} />
         </CardContent>
       </Card>

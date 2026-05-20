@@ -15,6 +15,7 @@ import { ru } from 'date-fns/locale';
 import PageHeader from '@/components/common/PageHeader';
 import StatusBadge from '@/components/common/StatusBadge';
 import { tripStatuses } from '@/lib/statusConfig';
+import { usePartner } from '@/lib/PartnerContext';
 
 const workTypeLabels = {
   maintenance: 'Обслуживание оборуд.',
@@ -27,6 +28,7 @@ const workTypeLabels = {
 export default function Trips() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { partner } = usePartner();
   const [crewFilter, setCrewFilter] = useState('all');
   const [employeeFilter, setEmployeeFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -58,6 +60,7 @@ export default function Trips() {
     if (employeeFilter && !t.employee_name?.toLowerCase().includes(employeeFilter.toLowerCase())) return false;
     if (dateFrom && t.trip_date && t.trip_date < dateFrom) return false;
     if (dateTo && t.trip_date && t.trip_date > dateTo) return false;
+    if (partner && t.partner && t.partner !== partner) return false;
     return true;
   });
 
@@ -72,7 +75,7 @@ export default function Trips() {
         </div>
       )}
       <PageHeader
-        title="Журнал выездов"
+        title={partner ? `Выезды — ${partner}` : 'Журнал выездов'}
         actions={
           <div className="flex items-center gap-2">
             <Button
