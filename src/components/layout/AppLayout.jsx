@@ -39,7 +39,7 @@ export default function AppLayout() {
         />
         <button
           onClick={() => setShowSwitch(true)}
-          className="flex items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors px-3 py-2 rounded-lg font-semibold text-sm"
+          className="flex items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors px-3 py-1.5 h-9 rounded-lg font-semibold text-sm leading-none"
         >
           {partner}
           <ChevronDown className="w-4 h-4 opacity-80" />
@@ -49,7 +49,7 @@ export default function AppLayout() {
       {showSwitch && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowSwitch(false)} />
-          <div className="relative w-full bg-background rounded-t-2xl p-6 pb-10 space-y-4 safe-area-bottom max-h-[80vh] overflow-y-auto">
+          <div className="relative w-full bg-background rounded-t-2xl p-6 pb-20 space-y-4 safe-area-bottom max-h-[80vh] overflow-y-auto">
             <h2 className="text-lg font-bold text-center">Сменить проект</h2>
             {PARTNERS.map(p => (
               <button
