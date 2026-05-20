@@ -39,7 +39,7 @@ export default function AppLayout() {
         />
         <button
           onClick={() => setShowSwitch(true)}
-          className="flex items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors px-3 py-1.5 h-9 rounded-lg font-semibold text-sm leading-none"
+          className="flex items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors px-3 py-2 rounded-lg font-semibold text-sm"
         >
           {partner}
           <ChevronDown className="w-4 h-4 opacity-80" />
