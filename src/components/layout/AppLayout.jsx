@@ -4,6 +4,7 @@ import BottomNav from './BottomNav';
 import { motion, AnimatePresence } from 'framer-motion';
 import TabKeepAlive from './TabKeepAlive';
 import PartnerSelect from './PartnerSelect';
+import { ChevronDown } from 'lucide-react';
 
 const TAB_PATHS = ['/', '/trips', '/warehouse', '/incidents', '/profile'];
 
@@ -11,10 +12,12 @@ export default function AppLayout() {
   const location = useLocation();
   const isTabRoute = TAB_PATHS.includes(location.pathname);
   const [partner, setPartner] = useState(() => localStorage.getItem('selected_partner') || null);
+  const [showSwitch, setShowSwitch] = useState(false);
 
   const handlePartnerSelect = (p) => {
     localStorage.setItem('selected_partner', p);
     setPartner(p);
+    setShowSwitch(false);
   };
 
   useEffect(() => {
@@ -35,12 +38,35 @@ export default function AppLayout() {
           className="h-10 object-contain"
         />
         <button
-          onClick={() => { localStorage.removeItem('selected_partner'); setPartner(null); }}
-          className="text-xs text-white/70 hover:text-white px-2 py-1 rounded"
+          onClick={() => setShowSwitch(true)}
+          className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors px-3 py-2 rounded-lg font-semibold text-sm"
         >
-          {partner} ✕
+          {partner}
+          <ChevronDown className="w-4 h-4 opacity-80" />
         </button>
       </header>
+
+      {showSwitch && (
+        <div className="fixed inset-0 z-50 flex flex-col">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowSwitch(false)} />
+          <div className="relative mt-auto bg-background rounded-t-2xl p-6 space-y-4 safe-area-bottom">
+            <h2 className="text-lg font-bold text-center">Сменить проект</h2>
+            {['ИНК', 'Газпром Бурение', 'МУБР'].map(p => (
+              <button
+                key={p}
+                onClick={() => handlePartnerSelect(p)}
+                className={`w-full rounded-xl border-2 px-4 py-4 text-left font-semibold text-base transition-all ${
+                  partner === p
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-card text-foreground hover:border-primary/50'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <main className="relative pb-24 max-w-lg mx-auto overflow-x-hidden min-h-screen">
         {/* Keep all tab pages mounted; toggle visibility for instant tab switching */}
