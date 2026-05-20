@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
  *   triggerClassName, children (optional — if provided, rendered inside trigger)
  */
 export default function MobileSelect({ value, onValueChange, placeholder, options = [], className, triggerClassName, disabled }) {
+  options = options.filter(o => o.value !== '' && o.value != null);
   const [open, setOpen] = useState(false);
   const isMobile = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
   const selectedLabel = options.find(o => o.value === value)?.label;
