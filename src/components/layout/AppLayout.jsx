@@ -31,20 +31,22 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background font-inter">
-      <header className="text-white px-4 py-3 flex items-center justify-between pl-2 bg-[#133371] safe-area-top">
-        <img
-          src="https://media.base44.com/images/public/69fc64a1b3cf2f52f788409b/675c8f4d4_ChatGPTImage7202614_48_13-fotor-bg-remover-2026050714553.png"
-          alt="SCAB"
-          className="h-10 object-contain"
-        />
-        <button
-          onClick={() => setShowSwitch(true)}
-          className="flex items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors px-3 py-2 rounded-lg font-semibold text-sm"
-        >
-          {partner}
-          <ChevronDown className="w-4 h-4 opacity-80" />
-        </button>
-      </header>
+      <div className="bg-[#133371] safe-area-top text-white">
+        <header className="px-4 py-3 flex items-center justify-between pl-2">
+          <img
+            src="https://media.base44.com/images/public/69fc64a1b3cf2f52f788409b/675c8f4d4_ChatGPTImage7202614_48_13-fotor-bg-remover-2026050714553.png"
+            alt="SCAB"
+            className="h-10 object-contain"
+          />
+          <button
+            onClick={() => setShowSwitch(true)}
+            className="flex items-center justify-center gap-1.5 bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors px-3 py-2 rounded-lg font-semibold text-sm"
+          >
+            {partner}
+            <ChevronDown className="w-4 h-4 opacity-80" />
+          </button>
+        </header>
+      </div>
 
       {showSwitch && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center">
