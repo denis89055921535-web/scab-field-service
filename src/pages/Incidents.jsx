@@ -166,12 +166,6 @@ export default function Incidents() {
               <DialogTitle>{isReadOnly ? 'Просмотр аварии' : 'Новая авария'}</DialogTitle>
             </DialogHeader>
 
-            {form.partner && (
-              <div className="px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium">
-                Партнёр: {form.partner}
-              </div>
-            )}
-
             {isReadOnly && (
               <div className="px-0 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400 text-center">
                 Запись сохранена и не может быть изменена
@@ -179,6 +173,13 @@ export default function Incidents() {
             )}
 
             <div className="space-y-3 mt-2">
+              {form.partner && (
+                <div>
+                  <Label className="text-xs">Партнёр</Label>
+                  <Input value={form.partner} disabled readOnly className="bg-muted/50 font-medium text-primary" />
+                </div>
+              )}
+
               <div>
                 <Label className="text-xs">Дата аварии *</Label>
                 <Input type="date" value={form.incident_date} onChange={e => setForm({ ...form, incident_date: e.target.value })} disabled={isReadOnly} readOnly={isReadOnly} />

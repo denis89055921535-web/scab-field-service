@@ -84,6 +84,7 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
           />
           <InfoRow icon={Cpu} label="Тип модуля" value={crew.module_type || '—'} />
           <InfoRow icon={Box} label="Тип шкафов" value={crew.cabinet_type || '—'} />
+          {crew.partner && <InfoRow icon={Briefcase} label="Партнёр" value={crew.partner} />}
         </CardContent>
       </Card>
 
