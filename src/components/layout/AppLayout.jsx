@@ -51,7 +51,7 @@ export default function AppLayout() {
       {showSwitch && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowSwitch(false)} />
-          <div className="relative w-full bg-background rounded-t-2xl p-6 pb-10 space-y-4 safe-area-bottom max-h-[80vh] overflow-y-auto">
+          <div className="relative w-full bg-background rounded-t-2xl p-6 pb-16 space-y-4 safe-area-bottom max-h-[80vh] overflow-y-auto">
             <h2 className="text-lg font-bold text-center">Сменить проект</h2>
             {PARTNERS.map(p => (
               <button
