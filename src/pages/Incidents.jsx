@@ -109,6 +109,7 @@ export default function Incidents() {
       pipe_kit_number: incident.pipe_kit_number || '',
       photos: incident.photos || [],
       comment: incident.comment || '',
+      partner: incident.partner || '',
     });
     setEditId(incident.id);
     setOpen(true);
