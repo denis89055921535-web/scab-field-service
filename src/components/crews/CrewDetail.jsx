@@ -75,6 +75,7 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
         <CardContent className="p-4 space-y-3">
           <InfoRow icon={MapPin} label="Месторождение" value={crew.field_name || '—'} />
           <InfoRow icon={MapPin} label="Наименование проекта" value={crew.project_name || '—'} />
+          {crew.partner && <InfoRow icon={Briefcase} label="Партнёр" value={crew.partner} />}
           <InfoRow icon={Box} label="Тип БУ" value={crew.drill_type || '—'} />
           <InfoRow icon={Layers} label="Комплекты БИ" value={crew.bi_kits_numbers || '—'} />
           <InfoRow 
@@ -84,7 +85,6 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
           />
           <InfoRow icon={Cpu} label="Тип модуля" value={crew.module_type || '—'} />
           <InfoRow icon={Box} label="Тип шкафов" value={crew.cabinet_type || '—'} />
-          {crew.partner && <InfoRow icon={Briefcase} label="Партнёр" value={crew.partner} />}
         </CardContent>
       </Card>
 
