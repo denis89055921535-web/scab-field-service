@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import ChecklistDashboard from '@/components/crews/ChecklistDashboard';
 
 const workTypeLabels = {
   maintenance: 'Обслуживание',
@@ -85,6 +86,12 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
           <InfoRow icon={Box} label="Тип шкафов" value={crew.cabinet_type || '—'} />
         </CardContent>
       </Card>
+
+      {/* Checklist Dashboard */}
+      <div>
+        <h3 className="text-sm font-semibold mb-2">Дашборд по чек-листам</h3>
+        <ChecklistDashboard tripHistory={tripHistory} />
+      </div>
 
       {/* Trip history */}
       <div>
