@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const PARTNERS = ['ИНК', 'Газпром Бурение', 'МУБР'];
+const PARTNERS = ['ИНК-Сервис', 'ИНК-ТКРС', 'Газпром Бурение', 'МУБР'];
 const STORAGE_KEY = 'selected_partner';
 
 const PartnerContext = createContext(null);
