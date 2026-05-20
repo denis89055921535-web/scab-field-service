@@ -5,17 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import TabKeepAlive from './TabKeepAlive';
 import PartnerSelect from './PartnerSelect';
 import { ChevronDown } from 'lucide-react';
+import { usePartner } from '@/lib/PartnerContext';
 
 const TAB_PATHS = ['/', '/trips', '/warehouse', '/incidents', '/profile'];
 
 export default function AppLayout() {
   const location = useLocation();
   const isTabRoute = TAB_PATHS.includes(location.pathname);
-  const [partner, setPartner] = useState(() => localStorage.getItem('selected_partner') || null);
+  const { partner, setPartner, PARTNERS } = usePartner();
   const [showSwitch, setShowSwitch] = useState(false);
 
   const handlePartnerSelect = (p) => {
-    localStorage.setItem('selected_partner', p);
     setPartner(p);
     setShowSwitch(false);
   };
@@ -51,7 +51,7 @@ export default function AppLayout() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowSwitch(false)} />
           <div className="relative mt-auto bg-background rounded-t-2xl p-6 space-y-4 safe-area-bottom">
             <h2 className="text-lg font-bold text-center">Сменить проект</h2>
-            {['ИНК', 'Газпром Бурение', 'МУБР'].map(p => (
+            {PARTNERS.map(p => (
               <button
                 key={p}
                 onClick={() => handlePartnerSelect(p)}
