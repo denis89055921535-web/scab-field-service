@@ -17,14 +17,14 @@ const TAB_ROUTES = [
   { path: '/profile', Component: Profile },
 ];
 
-export default function TabKeepAlive() {
+export default function TabKeepAlive({ partner }) {
   const { pathname } = useLocation();
 
   return (
     <>
       {TAB_ROUTES.map(({ path, Component }) => (
         <div key={path} style={{ display: pathname === path ? 'block' : 'none' }}>
-          <Component />
+          {path === '/' ? <Component partner={partner} /> : <Component />}
         </div>
       ))}
     </>

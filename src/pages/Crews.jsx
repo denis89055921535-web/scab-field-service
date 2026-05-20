@@ -12,7 +12,7 @@ import PageHeader from '@/components/common/PageHeader';
 import { crewStatuses } from '@/lib/statusConfig';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
-export default function Crews() {
+export default function Crews({ partner }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -33,7 +33,8 @@ export default function Crews() {
       c.crew_number?.toLowerCase().includes(search.toLowerCase()) ||
       c.field_name?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || c.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchPartner = !partner || c.project_name === partner;
+    return matchSearch && matchStatus && matchPartner;
   });
 
   return (
@@ -44,7 +45,7 @@ export default function Crews() {
         </div>
       )}
       <PageHeader
-        title="Буровые бригады"
+        title={partner ? `Бригады — ${partner}` : 'Буровые бригады'}
         actions={
           <Button
             variant="ghost"
