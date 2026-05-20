@@ -16,15 +16,15 @@ import { exportIncidentToExcel, sendIncidentByEmail } from '@/lib/incidentExport
 import { usePartner } from '@/lib/PartnerContext';
 
 const emptyForm = {
-  incident_date: '',
-  object_name: '',
-  bi_kit_number: '',
-  pipe_number: '',
-  rfid_tag_number: '',
-  last_inspection_date: '',
-  pipe_kit_number: '',
-  photos: [],
-  comment: '',
+incident_date: '',
+object_name: '',
+bi_kit_number: '',
+pipe_number: '',
+rfid_tag_number: '',
+last_inspection_date: '',
+pipe_kit_number: '',
+photos: [],
+comment: '',
 };
 
 export default function Incidents() {
@@ -157,7 +157,7 @@ export default function Incidents() {
       <div className="px-4 pt-4 space-y-3">
         <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
           <DialogTrigger asChild>
-            <Button className="w-full" onClick={() => { setForm(emptyForm); setEditId(null); }}>
+            <Button className="w-full" onClick={() => { setForm({ ...emptyForm, partner: partner || '' }); setEditId(null); }}>
               <Plus className="w-4 h-4 mr-2" /> Добавить аварию
             </Button>
           </DialogTrigger>
@@ -173,12 +173,10 @@ export default function Incidents() {
             )}
 
             <div className="space-y-3 mt-2">
-              {form.partner && (
-                <div>
-                  <Label className="text-xs">Партнёр</Label>
-                  <Input value={form.partner} disabled readOnly className="bg-muted/50 font-medium text-primary" />
-                </div>
-              )}
+              <div>
+                <Label className="text-xs">Партнёр</Label>
+                <Input value={form.partner || partner || ''} disabled readOnly className="bg-muted/50 font-medium text-primary" />
+              </div>
 
               <div>
                 <Label className="text-xs">Дата аварии *</Label>
