@@ -49,6 +49,10 @@
         "no_rfid"
       ],
       "description": "Current status"
+    },
+    "partner": {
+      "type": "string",
+      "description": "\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u0440\u0442\u043d\u0451\u0440\u0430 (\u0418\u041d\u041a, \u0413\u0430\u0437\u043f\u0440\u043e\u043c \u0411\u0443\u0440\u0435\u043d\u0438\u0435, \u041c\u0423\u0411\u0420)"
     }
   },
   "required": [
@@ -61,25 +65,8 @@
         "role": "admin"
       }
     },
-    "read": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "engineer"
-          }
-        }
-      ]
-    },
-    "update": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
+    "read": {},
+    "update": {},
     "delete": {
       "user_condition": {
         "role": "admin"

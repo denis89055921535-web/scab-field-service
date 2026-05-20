@@ -33,7 +33,7 @@ export default function Crews({ partner }) {
       c.crew_number?.toLowerCase().includes(search.toLowerCase()) ||
       c.field_name?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || c.status === statusFilter;
-    const matchPartner = !partner || c.project_name === partner;
+    const matchPartner = !partner || c.partner === partner;
     return matchSearch && matchStatus && matchPartner;
   });
 

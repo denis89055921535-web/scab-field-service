@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -16,9 +16,11 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { crewStatuses } from '@/lib/statusConfig';
 
 
+const PARTNERS = ['ИНК', 'Газпром Бурение', 'МУБР'];
+
 const emptyForm = {
   crew_number: '', drill_type: '', field_name: '', project_name: '', bi_kits_numbers: '', 
-  has_internet: false, module_type: '', cabinet_type: '', status: 'in_work', photo_url: ''
+  has_internet: false, module_type: '', cabinet_type: '', status: 'in_work', photo_url: '', partner: ''
 };
 
 export default function AdminCrews() {
@@ -27,6 +29,12 @@ export default function AdminCrews() {
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
   const [kits, setKits] = useState(['', '']);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [partnerFilter, setPartnerFilter] = useState('');
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+  }, []);
 
 
   const { data: crews = [], isLoading } = useQuery({
@@ -76,6 +84,7 @@ export default function AdminCrews() {
       cabinet_type: crew.cabinet_type || '',
       status: crew.status || 'in_work',
       photo_url: crew.photo_url || '',
+      partner: crew.partner || '',
     });
     const parsed = crew.bi_kits_numbers
       ? crew.bi_kits_numbers.split('\n').map(s => s.trim()).filter(s => s !== '')
@@ -105,10 +114,23 @@ export default function AdminCrews() {
     toast.success('Фото загружено');
   };
 
+  const filteredCrews = partnerFilter ? crews.filter(c => c.partner === partnerFilter) : crews;
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-xl font-bold">Буровые бригады</h2>
+        <div className="flex items-center gap-2">
+          <Select value={partnerFilter} onValueChange={setPartnerFilter}>
+            <SelectTrigger className="w-44 h-8 text-xs">
+              <SelectValue placeholder="Все партнёры" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={null}>Все партнёры</SelectItem>
+              {PARTNERS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
         <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
           <DialogTrigger asChild>
             <Button size="sm" onClick={() => { setForm(emptyForm); setEditId(null); }}>
@@ -135,6 +157,19 @@ export default function AdminCrews() {
               <div>
                 <Label className="text-xs">Наименование проекта</Label>
                 <Input value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} placeholder="Название проекта" />
+              </div>
+              <div>
+                <Label className="text-xs">Партнёр</Label>
+                {currentUser?.role === 'admin' ? (
+                  <Select value={form.partner} onValueChange={v => setForm({ ...form, partner: v })}>
+                    <SelectTrigger><SelectValue placeholder="Выберите партнёра" /></SelectTrigger>
+                    <SelectContent>
+                      {PARTNERS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input value={form.partner || '—'} disabled className="bg-muted" />
+                )}
               </div>
               <div>
                 <Label className="text-xs">Номера комплектов БИ</Label>
@@ -239,17 +274,19 @@ export default function AdminCrews() {
                 <TableHead>№</TableHead>
                 <TableHead>Тип БУ</TableHead>
                 <TableHead>Месторождение</TableHead>
+                <TableHead>Партнёр</TableHead>
                 <TableHead>Компл. БИ</TableHead>
                 <TableHead>Статус</TableHead>
                 <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {crews.map(crew => (
+              {filteredCrews.map(crew => (
                 <TableRow key={crew.id}>
                   <TableCell className="font-medium">{crew.crew_number}</TableCell>
                   <TableCell>{crew.drill_type || '—'}</TableCell>
                   <TableCell>{crew.field_name || '—'}</TableCell>
+                  <TableCell>{crew.partner || '—'}</TableCell>
                   <TableCell>{crew.bi_kits_numbers || '—'}</TableCell>
                   <TableCell><StatusBadge statusMap={crewStatuses} status={crew.status} /></TableCell>
                   <TableCell className="text-right">
