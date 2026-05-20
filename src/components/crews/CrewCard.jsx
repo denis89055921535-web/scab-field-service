@@ -53,6 +53,12 @@ export default function CrewCard({ crew, onClick }) {
             </p>
           )}
 
+          {crew.partner && (
+            <p className="text-xs text-primary font-medium truncate">
+              Партнёр: {crew.partner}
+            </p>
+          )}
+
           <div className="flex items-center gap-2 mt-2">
             <Badge
               variant="outline"
