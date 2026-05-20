@@ -309,6 +309,9 @@ export default function Incidents() {
                     {incident.pipe_number ? ` · Труба: ${incident.pipe_number}` : ''}
                     {incident.rfid_tag_number ? ` · RFID: ${incident.rfid_tag_number}` : ''}
                   </div>
+                  {incident.partner && (
+                    <div className="text-xs text-primary font-medium truncate">{incident.partner}</div>
+                  )}
                   {incident.comment && (
                     <div className="text-xs text-muted-foreground truncate">{incident.comment}</div>
                   )}
