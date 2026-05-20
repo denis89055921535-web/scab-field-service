@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Save, Loader2, Camera, X, FileDown, Mail, Plus, Trash2 } from 'lucide-react';
+import { Save, Loader2, Camera, X, FileDown, Mail, Plus, Trash2, MapPin, CheckCircle2 } from 'lucide-react';
 import MobileSelect from '@/components/common/MobileSelect';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
@@ -53,6 +53,7 @@ export default function TripForm() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [showErrors, setShowErrors] = useState(false);
   const [sending, setSending] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
 
   // Запрет редактирования для любых сохранённых выездов
   const isReadOnly = !isNew;
@@ -203,6 +204,32 @@ export default function TripForm() {
   };
 
   const handleExportExcel = () => exportToExcel(form);
+
+  const handleGetGeo = () => {
+    if (!navigator.geolocation) {
+      toast.error('Геолокация не поддерживается браузером');
+      return;
+    }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setForm(f => ({
+          ...f,
+          geo_lat: pos.coords.latitude,
+          geo_lon: pos.coords.longitude,
+          geo_accuracy: Math.round(pos.coords.accuracy),
+          geo_timestamp: new Date().toISOString(),
+        }));
+        setGeoLoading(false);
+        toast.success('Геопозиция получена');
+      },
+      (err) => {
+        setGeoLoading(false);
+        toast.error('Не удалось получить геопозицию: ' + err.message);
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  };
 
   return (
     <div className="pb-28">
@@ -412,6 +439,51 @@ export default function TripForm() {
               </label>
             )}
           </div>
+        </div>
+
+        {/* Геопозиция */}
+        <div>
+          <Label className="text-xs mb-2 block">Геопозиция с места</Label>
+          {form.geo_lat ? (
+            <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+              <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-green-800 dark:text-green-400">
+                  {form.geo_lat.toFixed(5)}, {form.geo_lon.toFixed(5)}
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-500">
+                  Точность: ±{form.geo_accuracy} м
+                  {form.geo_timestamp && ` · ${new Date(form.geo_timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`}
+                </p>
+              </div>
+              <a
+                href={`https://maps.google.com/?q=${form.geo_lat},${form.geo_lon}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary underline flex-shrink-0"
+              >
+                Карта
+              </a>
+              {!isReadOnly && (
+                <button type="button" onClick={() => setForm(f => ({ ...f, geo_lat: null, geo_lon: null, geo_accuracy: null, geo_timestamp: null }))} className="text-muted-foreground hover:text-destructive">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ) : (
+            !isReadOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11"
+                onClick={handleGetGeo}
+                disabled={geoLoading}
+              >
+                {geoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+                {geoLoading ? 'Получение геопозиции...' : 'Отправить геопозицию'}
+              </Button>
+            )
+          )}
         </div>
 
         <div>
