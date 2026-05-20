@@ -31,7 +31,7 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background font-inter">
-      <header className="text-white px-4 py-2 flex items-center justify-between pl-2 bg-[#133371] safe-area-top">
+      <header className="text-white px-4 py-3 flex items-center justify-between pl-2 bg-[#133371] safe-area-top">
         <img
           src="https://media.base44.com/images/public/69fc64a1b3cf2f52f788409b/675c8f4d4_ChatGPTImage7202614_48_13-fotor-bg-remover-2026050714553.png"
           alt="SCAB"
@@ -55,7 +55,7 @@ export default function AppLayout() {
               <button
                 key={p}
                 onClick={() => handlePartnerSelect(p)}
-                className={`w-full rounded-xl border-2 px-4 py-4 text-left font-semibold text-base transition-all ${
+                className={`w-full rounded-xl border-2 px-4 py-4 text-center font-semibold text-base transition-all ${
                   partner === p
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-border bg-card text-foreground hover:border-primary/50'
