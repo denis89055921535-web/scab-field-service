@@ -32,7 +32,7 @@ const locationConfig = {
   repair: { label: 'В ремонте', color: 'bg-orange-100 text-orange-800' },
 };
 
-const PARTNERS = ['ИНК', 'Газпром Бурение', 'МУБР'];
+const PARTNERS = ['ИНК-Сервис', 'ИНК-ТКРС', 'Газпром Бурение', 'МУБР'];
 
 const emptyForm = {
   name: '', asset_type: 'bi_kit', serial_number: '', manufacturer: '', commissioned_date: '',
@@ -47,6 +47,7 @@ export default function AdminWarehouse() {
   const [editId, setEditId] = useState(null);
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
+  const [filterPartner, setFilterPartner] = useState('all');
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets'],
@@ -104,7 +105,8 @@ export default function AdminWarehouse() {
   const filtered = assets.filter(a => {
     const byType = filterType === 'all' || a.asset_type === filterType;
     const byLoc = filterLocation === 'all' || a.location_type === filterLocation;
-    return byType && byLoc;
+    const byPartner = filterPartner === 'all' || a.partner === filterPartner;
+    return byType && byLoc && byPartner;
   });
 
   const stats = {
@@ -256,6 +258,13 @@ export default function AdminWarehouse() {
             {Object.entries(locationConfig).map(([k, { label }]) => (
               <SelectItem key={k} value={k}>{label}</SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterPartner} onValueChange={setFilterPartner}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Компания" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все компании</SelectItem>
+            {PARTNERS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
