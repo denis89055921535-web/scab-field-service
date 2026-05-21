@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePartner } from '@/lib/PartnerContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -42,16 +43,18 @@ const emptyForm = {
 
 export default function AdminWarehouse() {
   const queryClient = useQueryClient();
+  const { partner } = usePartner();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
-  const [filterPartner, setFilterPartner] = useState('all');
 
   const { data: assets = [], isLoading } = useQuery({
-    queryKey: ['assets'],
-    queryFn: () => base44.entities.Asset.list('-created_date'),
+    queryKey: ['assets', partner],
+    queryFn: () => partner
+      ? base44.entities.Asset.filter({ partner }, '-created_date')
+      : base44.entities.Asset.list('-created_date'),
   });
 
   const { data: crews = [] } = useQuery({
@@ -105,8 +108,7 @@ export default function AdminWarehouse() {
   const filtered = assets.filter(a => {
     const byType = filterType === 'all' || a.asset_type === filterType;
     const byLoc = filterLocation === 'all' || a.location_type === filterLocation;
-    const byPartner = filterPartner === 'all' || a.partner === filterPartner;
-    return byType && byLoc && byPartner;
+    return byType && byLoc;
   });
 
   const stats = {
@@ -119,10 +121,10 @@ export default function AdminWarehouse() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Склад оборудования</h2>
+        <h2 className="text-xl font-bold">Склад — {partner || 'Все компании'}</h2>
         <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
           <DialogTrigger asChild>
-            <Button size="sm" onClick={() => { setForm(emptyForm); setEditId(null); }}>
+            <Button size="sm" onClick={() => { setForm({ ...emptyForm, partner: partner || '' }); setEditId(null); }}>
               <Plus className="w-4 h-4 mr-1" /> Добавить актив
             </Button>
           </DialogTrigger>
@@ -258,13 +260,6 @@ export default function AdminWarehouse() {
             {Object.entries(locationConfig).map(([k, { label }]) => (
               <SelectItem key={k} value={k}>{label}</SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-        <Select value={filterPartner} onValueChange={setFilterPartner}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Компания" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Все компании</SelectItem>
-            {PARTNERS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>

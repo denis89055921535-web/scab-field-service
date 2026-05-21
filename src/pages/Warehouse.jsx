@@ -39,15 +39,16 @@ export default function Warehouse() {
   const [editingAsset, setEditingAsset] = useState(null);
 
   const { data: assets = [], isLoading } = useQuery({
-    queryKey: ['assets'],
-    queryFn: () => base44.entities.Asset.list('-created_date'),
+    queryKey: ['assets', partner],
+    queryFn: () => partner
+      ? base44.entities.Asset.filter({ partner }, '-created_date')
+      : base44.entities.Asset.list('-created_date'),
   });
 
   const filtered = assets.filter(a => {
     const byType = filterType === 'all' || a.asset_type === filterType;
     const byLoc = filterLocation === 'all' || a.location_type === filterLocation;
-    const byPartner = !partner || !a.partner || a.partner === partner;
-    return byType && byLoc && byPartner;
+    return byType && byLoc;
   });
 
   const stats = {
