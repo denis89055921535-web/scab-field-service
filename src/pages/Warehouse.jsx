@@ -50,12 +50,11 @@ export default function Warehouse() {
     return byType && byLoc && byPartner;
   });
 
-  const partnerAssets = partner ? assets.filter(a => a.partner === partner) : assets;
   const stats = {
-    total: partnerAssets.length,
-    warehouse: partnerAssets.filter(a => a.location_type === 'warehouse').length,
-    crew: partnerAssets.filter(a => a.location_type === 'crew').length,
-    repair: partnerAssets.filter(a => a.location_type === 'repair').length,
+    total: assets.length,
+    warehouse: assets.filter(a => a.location_type === 'warehouse').length,
+    crew: assets.filter(a => a.location_type === 'crew').length,
+    repair: assets.filter(a => a.location_type === 'repair').length,
   };
 
   if (editingAsset) {
