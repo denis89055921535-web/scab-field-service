@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, MapPin, ChevronRight, Pencil } from 'lucide-react';
+import { Package, ChevronRight, Pencil, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/common/PageHeader';
 import AssetDetail from '@/components/warehouse/AssetDetail';
@@ -51,6 +52,26 @@ export default function Warehouse() {
     return byType && byLoc;
   });
 
+  const exportToExcel = () => {
+    const rows = assets.map(a => ({
+      'Название': a.name,
+      'Тип': assetTypes[a.asset_type] || a.asset_type,
+      'Серийный номер': a.serial_number || '',
+      'Производитель': a.manufacturer || '',
+      'Состояние': a.condition === 'working' ? 'Исправен' : 'Неисправен',
+      'Местонахождение': locationConfig[a.location_type]?.label || a.location_type,
+      'Бригада': a.crew_number || '',
+      'Дата ввода': a.commissioned_date || '',
+      'Последняя проверка': a.last_inspection_date || '',
+      'Примечания': a.notes || '',
+      'Партнёр': a.partner || '',
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Склад');
+    XLSX.writeFile(wb, `Склад_${partner || 'все'}_${new Date().toLocaleDateString('ru-RU')}.xlsx`);
+  };
+
   const stats = {
     total: assets.length,
     warehouse: assets.filter(a => a.location_type === 'warehouse').length,
@@ -96,7 +117,14 @@ export default function Warehouse() {
 
   return (
     <div className="pb-24">
-      <PageHeader title={partner ? `Склад — ${partner}` : 'Склад оборудования'} />
+      <PageHeader
+        title={partner ? `Склад — ${partner}` : 'Склад оборудования'}
+        actions={
+          <Button variant="outline" size="sm" onClick={exportToExcel} disabled={assets.length === 0}>
+            <Download className="w-4 h-4 mr-1" /> Excel
+          </Button>
+        }
+      />
 
       <div className="px-4 pt-4 space-y-4">
         {/* Статистика */}
