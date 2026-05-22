@@ -4,13 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, Building2, Shield, LogOut, Settings, Trash2 } from 'lucide-react';
+import { User, Mail, Phone, Building2, Shield, LogOut, Settings, Trash2, ChevronRight } from 'lucide-react';
 import PageHeader from '@/components/common/PageHeader';
+import { usePartner } from '@/lib/PartnerContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
+  const [showPartnerSwitch, setShowPartnerSwitch] = useState(false);
   const navigate = useNavigate();
+  const { partner, setPartner, PARTNERS } = usePartner();
 
   useEffect(() => {
     base44.auth.me().then(setUser);
@@ -51,6 +54,38 @@ export default function Profile() {
             <ProfileRow icon={Shield} label="Роль" value={isAdmin ? 'Администратор' : 'Инженер'} />
           </CardContent>
         </Card>
+
+        <Button
+          variant="outline"
+          className="w-full h-11 justify-between"
+          onClick={() => setShowPartnerSwitch(!showPartnerSwitch)}
+        >
+          <span className="flex items-center gap-2">
+            <Building2 className="w-4 h-4" />
+            Проект: <span className="font-bold">{partner}</span>
+          </span>
+          <ChevronRight className={`w-4 h-4 transition-transform ${showPartnerSwitch ? 'rotate-90' : ''}`} />
+        </Button>
+
+        {showPartnerSwitch && (
+          <Card>
+            <CardContent className="p-3 space-y-2">
+              {PARTNERS.map(p => (
+                <button
+                  key={p}
+                  onClick={() => { setPartner(p); setShowPartnerSwitch(false); }}
+                  className={`w-full rounded-lg border-2 px-4 py-3 text-left font-semibold text-sm transition-all ${
+                    partner === p
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border bg-card text-foreground'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {isAdmin && (
           <Button

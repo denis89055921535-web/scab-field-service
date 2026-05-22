@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-
-const PARTNERS = ['ИНК', 'Газпром Бурение', 'МУБР'];
+import { usePartner } from '@/lib/PartnerContext';
 
 export default function PartnerSelect({ onSelect }) {
+  const { PARTNERS } = usePartner();
   const [selected, setSelected] = useState(null);
 
   return (
