@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Wifi, WifiOff, MapPin, Cpu, Box, Layers, ChevronDown, Calendar, User, Briefcase, ChevronRight } from 'lucide-react';
+import { Wifi, MapPin, Cpu, Box, Layers, ChevronDown, Calendar, User, Briefcase, ChevronRight } from 'lucide-react';
 import { crewStatuses, tripStatuses } from '@/lib/statusConfig';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -74,14 +74,16 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
       <Card>
         <CardContent className="p-4 space-y-3">
           <InfoRow icon={MapPin} label="Месторождение" value={crew.field_name || '—'} />
-          <InfoRow icon={MapPin} label="Наименование проекта" value={crew.project_name || '—'} />
           {crew.partner && <InfoRow icon={Briefcase} label="Партнёр" value={crew.partner} />}
           <InfoRow icon={Box} label="Тип БУ" value={crew.drill_type || '—'} />
           <InfoRow icon={Layers} label="Комплекты БИ" value={crew.bi_kits_numbers || '—'} />
-          <InfoRow 
-            icon={crew.has_internet ? Wifi : WifiOff} 
-            label="Интернет" 
-            value={crew.has_internet ? 'Есть' : 'Нет'} 
+          <InfoRow
+            icon={Wifi}
+            label="Интернет"
+            value={
+              [crew.has_wifi && 'Wi-Fi', crew.has_lte && 'LTE', crew.has_satellite && 'Спутник']
+                .filter(Boolean).join(', ') || '—'
+            }
           />
           <InfoRow icon={Cpu} label="Тип модуля" value={crew.module_type || '—'} />
           <InfoRow icon={Box} label="Тип шкафов" value={crew.cabinet_type || '—'} />

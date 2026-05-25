@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, Camera, Loader2, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import StatusBadge from '@/components/common/StatusBadge';
 import { crewStatuses } from '@/lib/statusConfig';
@@ -203,17 +204,25 @@ export default function AdminCrews() {
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Wi-Fi</Label>
-                <Switch checked={form.has_wifi} onCheckedChange={v => setForm({ ...form, has_wifi: v })} />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">LTE</Label>
-                <Switch checked={form.has_lte} onCheckedChange={v => setForm({ ...form, has_lte: v })} />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Спутник</Label>
-                <Switch checked={form.has_satellite} onCheckedChange={v => setForm({ ...form, has_satellite: v })} />
+              <div>
+                <Label className="text-xs">Интернет</Label>
+                <div className="flex gap-2 mt-1">
+                  {[{ key: 'has_wifi', label: 'Wi-Fi' }, { key: 'has_lte', label: 'LTE' }, { key: 'has_satellite', label: 'Спутник' }].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, [key]: !f[key] }))}
+                      className={cn(
+                        'px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+                        form[key]
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-transparent text-muted-foreground border-input hover:border-primary'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div>
                 <Label className="text-xs">Тип модуля</Label>

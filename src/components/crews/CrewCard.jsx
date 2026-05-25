@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Wifi, WifiOff, ChevronRight } from 'lucide-react';
+import { Wifi, ChevronRight } from 'lucide-react';
 import { crewStatuses } from '@/lib/statusConfig';
 import { cn } from '@/lib/utils';
 
@@ -41,11 +41,6 @@ export default function CrewCard({ crew, onClick }) {
             </p>
           )}
 
-          {crew.project_name && (
-            <p className="text-xs text-muted-foreground truncate">
-              Проект: {crew.project_name}
-            </p>
-          )}
 
           {crew.drill_type && (
             <p className="text-xs text-muted-foreground truncate">
@@ -66,10 +61,13 @@ export default function CrewCard({ crew, onClick }) {
             >
               {status.label}
             </Badge>
-            {crew.has_internet !== undefined && (
-              crew.has_internet 
-                ? <Wifi className="w-3.5 h-3.5 text-emerald-500" />
-                : <WifiOff className="w-3.5 h-3.5 text-muted-foreground" />
+            {(crew.has_wifi || crew.has_lte || crew.has_satellite) && (
+              <span className="flex items-center gap-1">
+                <Wifi className="w-3 h-3 text-emerald-500" />
+                <span className="text-[10px] text-emerald-600 font-medium">
+                  {[crew.has_wifi && 'Wi-Fi', crew.has_lte && 'LTE', crew.has_satellite && 'Спутник'].filter(Boolean).join(' · ')}
+                </span>
+              </span>
             )}
           </div>
         </div>
