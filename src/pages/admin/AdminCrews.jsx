@@ -21,7 +21,7 @@ const PARTNERS = ['ИНК-Сервис', 'ИНК-ТКРС', 'Газпром Бу
 
 const emptyForm = {
   crew_number: '', drill_type: '', field_name: '', bi_kits_numbers: '', 
-  has_internet: false, has_wifi: false, has_lte: false, has_satellite: false,
+  has_internet: false, has_wifi: false, has_lte: false, has_satellite: false, has_no_internet: false,
   module_type: '', cabinet_type: '', status: 'in_work', photo_url: '', partner: ''
 };
 
@@ -84,6 +84,7 @@ export default function AdminCrews() {
       has_wifi: !!crew.has_wifi,
       has_lte: !!crew.has_lte,
       has_satellite: !!crew.has_satellite,
+      has_no_internet: !!crew.has_no_internet,
       module_type: crew.module_type || '',
       cabinet_type: crew.cabinet_type || '',
       status: crew.status || 'in_work',
@@ -206,12 +207,12 @@ export default function AdminCrews() {
               </div>
               <div>
                 <Label className="text-xs">Интернет</Label>
-                <div className="flex gap-2 mt-1">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {[{ key: 'has_wifi', label: 'Wi-Fi' }, { key: 'has_lte', label: 'LTE' }, { key: 'has_satellite', label: 'Спутник' }].map(({ key, label }) => (
                     <button
                       key={key}
                       type="button"
-                      onClick={() => setForm(f => ({ ...f, [key]: !f[key] }))}
+                      onClick={() => setForm(f => ({ ...f, [key]: !f[key], has_no_internet: false }))}
                       className={cn(
                         'px-3 py-1 rounded-full text-xs font-medium border transition-colors',
                         form[key]
@@ -222,6 +223,18 @@ export default function AdminCrews() {
                       {label}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, has_no_internet: !f.has_no_internet, has_wifi: false, has_lte: false, has_satellite: false }))}
+                    className={cn(
+                      'px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+                      form.has_no_internet
+                        ? 'bg-destructive text-destructive-foreground border-destructive'
+                        : 'bg-transparent text-muted-foreground border-input hover:border-destructive'
+                    )}
+                  >
+                    Нет интернета
+                  </button>
                 </div>
               </div>
               <div>

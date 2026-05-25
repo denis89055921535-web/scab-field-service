@@ -38,6 +38,10 @@
       "type": "boolean",
       "description": "Satellite availability"
     },
+    "has_no_internet": {
+      "type": "boolean",
+      "description": "No internet connection"
+    },
     "module_type": {
       "type": "string",
       "description": "ARBI module type"

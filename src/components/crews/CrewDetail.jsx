@@ -81,8 +81,10 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
             icon={Wifi}
             label="Интернет"
             value={
-              [crew.has_wifi && 'Wi-Fi', crew.has_lte && 'LTE', crew.has_satellite && 'Спутник']
-                .filter(Boolean).join(', ') || '—'
+              crew.has_no_internet
+                ? 'Нет интернета'
+                : [crew.has_wifi && 'Wi-Fi', crew.has_lte && 'LTE', crew.has_satellite && 'Спутник']
+                    .filter(Boolean).join(', ') || '—'
             }
           />
           <InfoRow icon={Cpu} label="Тип модуля" value={crew.module_type || '—'} />

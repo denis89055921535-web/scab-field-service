@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Wifi, ChevronRight } from 'lucide-react';
+import { Wifi, WifiOff, ChevronRight } from 'lucide-react';
 import { crewStatuses } from '@/lib/statusConfig';
 import { cn } from '@/lib/utils';
 
@@ -61,7 +61,12 @@ export default function CrewCard({ crew, onClick }) {
             >
               {status.label}
             </Badge>
-            {(crew.has_wifi || crew.has_lte || crew.has_satellite) && (
+            {crew.has_no_internet ? (
+              <span className="flex items-center gap-1">
+                <WifiOff className="w-3 h-3 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground font-medium">Нет интернета</span>
+              </span>
+            ) : (crew.has_wifi || crew.has_lte || crew.has_satellite) && (
               <span className="flex items-center gap-1">
                 <Wifi className="w-3 h-3 text-emerald-500" />
                 <span className="text-[10px] text-emerald-600 font-medium">
