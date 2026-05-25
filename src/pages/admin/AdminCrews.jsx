@@ -19,8 +19,9 @@ import { crewStatuses } from '@/lib/statusConfig';
 const PARTNERS = ['ИНК-Сервис', 'ИНК-ТКРС', 'Газпром Бурение', 'МУБР'];
 
 const emptyForm = {
-  crew_number: '', drill_type: '', field_name: '', project_name: '', bi_kits_numbers: '', 
-  has_internet: false, module_type: '', cabinet_type: '', status: 'in_work', photo_url: '', partner: ''
+  crew_number: '', drill_type: '', field_name: '', bi_kits_numbers: '', 
+  has_internet: false, has_wifi: false, has_lte: false, has_satellite: false,
+  module_type: '', cabinet_type: '', status: 'in_work', photo_url: '', partner: ''
 };
 
 export default function AdminCrews() {
@@ -77,9 +78,11 @@ export default function AdminCrews() {
       crew_number: crew.crew_number || '',
       drill_type: crew.drill_type || '',
       field_name: crew.field_name || '',
-      project_name: crew.project_name || '',
       bi_kits_numbers: crew.bi_kits_numbers || '',
       has_internet: !!crew.has_internet,
+      has_wifi: !!crew.has_wifi,
+      has_lte: !!crew.has_lte,
+      has_satellite: !!crew.has_satellite,
       module_type: crew.module_type || '',
       cabinet_type: crew.cabinet_type || '',
       status: crew.status || 'in_work',
@@ -155,10 +158,6 @@ export default function AdminCrews() {
                 <Input value={form.field_name} onChange={e => setForm({ ...form, field_name: e.target.value })} />
               </div>
               <div>
-                <Label className="text-xs">Наименование проекта</Label>
-                <Input value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} placeholder="Название проекта" />
-              </div>
-              <div>
                 <Label className="text-xs">Партнёр</Label>
                 {currentUser?.role === 'admin' ? (
                   <Select value={form.partner} onValueChange={v => setForm({ ...form, partner: v })}>
@@ -207,6 +206,18 @@ export default function AdminCrews() {
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Интернет</Label>
                 <Switch checked={form.has_internet} onCheckedChange={v => setForm({ ...form, has_internet: v })} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Wi-Fi</Label>
+                <Switch checked={form.has_wifi} onCheckedChange={v => setForm({ ...form, has_wifi: v })} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">LTE</Label>
+                <Switch checked={form.has_lte} onCheckedChange={v => setForm({ ...form, has_lte: v })} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Спутник</Label>
+                <Switch checked={form.has_satellite} onCheckedChange={v => setForm({ ...form, has_satellite: v })} />
               </div>
               <div>
                 <Label className="text-xs">Тип модуля</Label>
