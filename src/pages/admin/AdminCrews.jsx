@@ -16,7 +16,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { crewStatuses } from '@/lib/statusConfig';
 
 
-const PARTNERS = ['ИНК', 'Газпром Бурение', 'МУБР'];
+const PARTNERS = ['ИНК-Сервис', 'ИНК-ТКРС', 'Газпром Бурение', 'МУБР'];
 
 const emptyForm = {
   crew_number: '', drill_type: '', field_name: '', project_name: '', bi_kits_numbers: '', 
