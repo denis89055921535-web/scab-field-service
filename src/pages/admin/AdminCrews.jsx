@@ -204,10 +204,6 @@ export default function AdminCrews() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <Label className="text-xs">Интернет</Label>
-                <Switch checked={form.has_internet} onCheckedChange={v => setForm({ ...form, has_internet: v })} />
-              </div>
-              <div className="flex items-center justify-between">
                 <Label className="text-xs">Wi-Fi</Label>
                 <Switch checked={form.has_wifi} onCheckedChange={v => setForm({ ...form, has_wifi: v })} />
               </div>
