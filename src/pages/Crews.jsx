@@ -21,7 +21,7 @@ export default function Crews({ partner }) {
 
   const { data: crews = [], isLoading } = useQuery({
     queryKey: ['crews'],
-    queryFn: () => base44.entities.DrillingCrew.list('-created_date'),
+    queryFn: () => base44.entities.DrillingCrew.list('crew_number'),
   });
 
   const { containerRef, pullDistance, pulling } = usePullToRefresh(() =>
