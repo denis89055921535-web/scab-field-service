@@ -38,6 +38,7 @@
         "drilling_start",
         "waiting_install",
         "dismount",
+        "waiting_rfid",
         "in_work",
         "no_rfid"
       ],

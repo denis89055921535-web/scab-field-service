@@ -3,6 +3,7 @@ export const crewStatuses = {
   drilling_start: { label: 'Забурка', color: 'bg-blue-100 text-blue-700 border-blue-200' },
   waiting_install: { label: 'Ожидание монтажа', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
   dismount: { label: 'Демонтаж', color: 'bg-orange-100 text-orange-700 border-orange-200' },
+  waiting_rfid: { label: 'Ожидание работы с RFID', color: 'bg-purple-100 text-purple-700 border-purple-200' },
   in_work: { label: 'В работе с RFID', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
   no_rfid: { label: 'В работе без RFID', color: 'bg-red-100 text-red-700 border-red-200' },
 };
