@@ -275,14 +275,15 @@ export default function AdminWarehouse() {
                 <TableHead>Состояние</TableHead>
                 <TableHead>Местоположение</TableHead>
                 <TableHead>Партнёр</TableHead>
+                <TableHead>Примечания</TableHead>
                 <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Загрузка...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Загрузка...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Активы не найдены</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Активы не найдены</TableCell></TableRow>
               ) : filtered.map(asset => {
                 const loc = locationConfig[asset.location_type];
                 const cond = conditionConfig[asset.condition];
@@ -307,6 +308,7 @@ export default function AdminWarehouse() {
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{asset.partner || '—'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate" title={asset.notes}>{asset.notes || '—'}</TableCell>
                     <TableCell className="text-right">
                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(asset)}>
                        <Pencil className="w-3.5 h-3.5" />
