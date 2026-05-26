@@ -261,7 +261,7 @@ export default function AdminWarehouse() {
       </div>
 
       {/* Фильтры */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap items-center">
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-44"><SelectValue placeholder="Тип" /></SelectTrigger>
           <SelectContent>
@@ -280,6 +280,9 @@ export default function AdminWarehouse() {
             ))}
           </SelectContent>
         </Select>
+        <span className="text-sm text-muted-foreground ml-1">
+          {filtered.length === assets.length ? `${assets.length} позиций` : `${filtered.length} из ${assets.length}`}
+        </span>
       </div>
 
       <Card>
