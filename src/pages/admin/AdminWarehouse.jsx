@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Loader2, Package, MapPin } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Package, MapPin, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 const assetTypes = {
@@ -103,6 +103,24 @@ export default function AdminWarehouse() {
     setOpen(false);
     setForm(emptyForm);
     setEditId(null);
+  };
+
+  const openDuplicate = (asset) => {
+    setForm({
+      name: asset.name + ' (копия)',
+      asset_type: asset.asset_type || 'bi_kit',
+      serial_number: '',
+      manufacturer: asset.manufacturer || '',
+      commissioned_date: '',
+      condition: asset.condition || 'working',
+      location_type: asset.location_type || 'warehouse',
+      crew_number: asset.crew_number || '',
+      notes: asset.notes || '',
+      last_inspection_date: '',
+      partner: asset.partner || '',
+    });
+    setEditId(null);
+    setOpen(true);
   };
 
   const filtered = assets.filter(a => {
@@ -310,6 +328,9 @@ export default function AdminWarehouse() {
                     <TableCell className="text-sm text-muted-foreground">{asset.partner || '—'}</TableCell>
                     <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate" title={asset.notes}>{asset.notes || '—'}</TableCell>
                     <TableCell className="text-right">
+                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" title="Дублировать" onClick={() => openDuplicate(asset)}>
+                       <Copy className="w-3.5 h-3.5" />
+                     </Button>
                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(asset)}>
                        <Pencil className="w-3.5 h-3.5" />
                      </Button>
