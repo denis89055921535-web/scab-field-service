@@ -24,7 +24,15 @@ const workTypeLabels = {
   equipment_uninstall: 'Демонтаж',
 };
 
-export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
+const resolveAssetNames = (str, type, assets) => {
+  if (!str) return '—';
+  return str.split('\n').map(v => {
+    const byId = assets.find(a => a.asset_type === type && a.id === v);
+    return byId ? byId.name : v;
+  }).filter(Boolean).join(', ') || '—';
+};
+
+export default function CrewDetail({ crew, onStatusChange, tripHistory = [], assets = [] }) {
   const navigate = useNavigate();
   const status = crewStatuses[crew.status] || crewStatuses.moving;
 
@@ -76,7 +84,7 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
           <InfoRow icon={MapPin} label="Месторождение" value={crew.field_name || '—'} />
           {crew.partner && <InfoRow icon={Briefcase} label="Партнёр" value={crew.partner} />}
           <InfoRow icon={Box} label="Тип БУ" value={crew.drill_type || '—'} />
-          <InfoRow icon={Layers} label="Комплекты БИ" value={crew.bi_kits_numbers || '—'} />
+          <InfoRow icon={Layers} label="Комплекты БИ" value={resolveAssetNames(crew.bi_kits_numbers, 'bi_kit', assets)} />
           <InfoRow
             icon={Wifi}
             label="Интернет"
@@ -87,8 +95,8 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [] }) {
                     .filter(Boolean).join(', ') || '—'
             }
           />
-          <InfoRow icon={Cpu} label="Тип модуля" value={crew.module_type || '—'} />
-          <InfoRow icon={Box} label="Тип шкафов" value={crew.cabinet_type || '—'} />
+          <InfoRow icon={Cpu} label="Тип модуля" value={resolveAssetNames(crew.module_type, 'reader_module', assets)} />
+          <InfoRow icon={Box} label="Тип шкафов" value={resolveAssetNames(crew.cabinet_type, 'cabinet', assets)} />
         </CardContent>
       </Card>
 
