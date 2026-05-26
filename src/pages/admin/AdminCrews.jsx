@@ -72,21 +72,29 @@ export default function AdminCrews() {
     return byName ? byName.id : null;
   };
 
-  // Вспомогательная функция: собрать занятые id из всех бригад (включая текущую) кроме строки currentIdx
+  // Собрать все занятые id (с учётом кратности) глобально, кроме строки currentIdx текущей формы
+  // Возвращает Set id, которые уже исчерпаны (каждый актив уникален, лимит = 1)
   const getUsedIds = (type, currentList, currentIdx) => {
-    // Из всех других бригад
-    const otherCrews = crews.filter(c => c.id !== editId);
     const fieldKey = type === 'bi_kit' ? 'bi_kits_numbers' : type === 'reader_module' ? 'module_type' : 'cabinet_type';
-    const fromOthers = otherCrews.flatMap(c =>
-      (c[fieldKey] ? c[fieldKey].split('\n').map(s => s.trim()).filter(Boolean) : [])
-        .map(v => resolveToId(v, type)).filter(Boolean)
-    );
-    // Из других строк текущей формы (кроме строки currentIdx)
-    const fromCurrentForm = currentList
-      .filter((_, i) => i !== currentIdx)
-      .map(v => resolveToId(v, type) || v)
-      .filter(Boolean);
-    return new Set([...fromOthers, ...fromCurrentForm]);
+    const usedIds = new Set();
+
+    // Из всех других бригад — каждое вхождение занимает слот
+    crews.filter(c => c.id !== editId).forEach(c => {
+      (c[fieldKey] ? c[fieldKey].split('\n').map(s => s.trim()).filter(Boolean) : []).forEach(v => {
+        const id = resolveToId(v, type);
+        if (id) usedIds.add(id);
+      });
+    });
+
+    // Из других строк текущей формы (все строки кроме currentIdx)
+    currentList.forEach((v, i) => {
+      if (i === currentIdx) return;
+      if (!v) return;
+      const id = resolveToId(v, type) || v;
+      if (id) usedIds.add(id);
+    });
+
+    return usedIds;
   };
 
   // Конвертируем список id обратно в имена для сохранения
@@ -100,14 +108,10 @@ export default function AdminCrews() {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      const payload = {
-        ...data,
-        bi_kits_numbers: idsToNames(data.bi_kits_numbers, 'bi_kit'),
-        module_type: idsToNames(data.module_type, 'reader_module'),
-        cabinet_type: idsToNames(data.cabinet_type, 'cabinet'),
-      };
-      if (editId) return base44.entities.DrillingCrew.update(editId, payload);
-      return base44.entities.DrillingCrew.create(payload);
+      // Сохраняем id активов напрямую (не конвертируем в имена)
+      // resolveToId на входе уже работает с id, просто сохраняем как есть
+      if (editId) return base44.entities.DrillingCrew.update(editId, data);
+      return base44.entities.DrillingCrew.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['crews'] });
@@ -440,7 +444,7 @@ export default function AdminCrews() {
                   <TableCell>{crew.drill_type || '—'}</TableCell>
                   <TableCell>{crew.field_name || '—'}</TableCell>
                   <TableCell>{crew.partner || '—'}</TableCell>
-                  <TableCell>{crew.bi_kits_numbers || '—'}</TableCell>
+                  <TableCell>{crew.bi_kits_numbers ? crew.bi_kits_numbers.split('\n').map(v => resolveToId(v, 'bi_kit') ? getAssetName(resolveToId(v, 'bi_kit')) : v).filter(Boolean).join(', ') || '—' : '—'}</TableCell>
                   <TableCell><StatusBadge statusMap={crewStatuses} status={crew.status} /></TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(crew)}>
