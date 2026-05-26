@@ -72,20 +72,22 @@ export default function AdminCrews() {
     return byName ? byName.id : null;
   };
 
-  // Собираем все id активов, уже занятых в ДРУГИХ бригадах (поддерживаем и старые имена и новые id)
-  const otherCrews = crews.filter(c => c.id !== editId);
-  const usedBiKits = new Set(otherCrews.flatMap(c =>
-    (c.bi_kits_numbers ? c.bi_kits_numbers.split('\n').map(s => s.trim()).filter(Boolean) : [])
-      .map(v => resolveToId(v, 'bi_kit')).filter(Boolean)
-  ));
-  const usedModules = new Set(otherCrews.flatMap(c =>
-    (c.module_type ? c.module_type.split('\n').map(s => s.trim()).filter(Boolean) : [])
-      .map(v => resolveToId(v, 'reader_module')).filter(Boolean)
-  ));
-  const usedCabinets = new Set(otherCrews.flatMap(c =>
-    (c.cabinet_type ? c.cabinet_type.split('\n').map(s => s.trim()).filter(Boolean) : [])
-      .map(v => resolveToId(v, 'cabinet')).filter(Boolean)
-  ));
+  // Вспомогательная функция: собрать занятые id из всех бригад (включая текущую) кроме строки currentIdx
+  const getUsedIds = (type, currentList, currentIdx) => {
+    // Из всех других бригад
+    const otherCrews = crews.filter(c => c.id !== editId);
+    const fieldKey = type === 'bi_kit' ? 'bi_kits_numbers' : type === 'reader_module' ? 'module_type' : 'cabinet_type';
+    const fromOthers = otherCrews.flatMap(c =>
+      (c[fieldKey] ? c[fieldKey].split('\n').map(s => s.trim()).filter(Boolean) : [])
+        .map(v => resolveToId(v, type)).filter(Boolean)
+    );
+    // Из других строк текущей формы (кроме строки currentIdx)
+    const fromCurrentForm = currentList
+      .filter((_, i) => i !== currentIdx)
+      .map(v => resolveToId(v, type) || v)
+      .filter(Boolean);
+    return new Set([...fromOthers, ...fromCurrentForm]);
+  };
 
   // Конвертируем список id обратно в имена для сохранения
   const idsToNames = (idsStr, type) => {
@@ -248,7 +250,7 @@ export default function AdminCrews() {
                           <SelectTrigger><SelectValue placeholder={`Комплект ${idx + 1}`}>{kit ? getAssetName(kit) : 'Не выбрано'}</SelectValue></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="__none__"><span className="text-muted-foreground">— Не выбрано —</span></SelectItem>
-                            {biKitAssets.filter(a => !usedBiKits.has(a.id) || kits[idx] === a.id).map(a => (
+                            {biKitAssets.filter(a => !getUsedIds('bi_kit', kits, idx).has(a.id)).map(a => (
                               <SelectItem key={a.id} value={a.id}>
                                 <span>{a.name}</span>
                                 {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
@@ -319,7 +321,7 @@ export default function AdminCrews() {
                          <SelectTrigger><SelectValue placeholder={`Модуль ${idx + 1}`}>{mod ? getAssetName(mod) : 'Не выбрано'}</SelectValue></SelectTrigger>
                          <SelectContent>
                            <SelectItem value="__none__"><span className="text-muted-foreground">— Не выбрано —</span></SelectItem>
-                           {moduleAssets.filter(a => !usedModules.has(a.id) || modulesList[idx] === a.id).map(a => (
+                           {moduleAssets.filter(a => !getUsedIds('reader_module', modulesList, idx).has(a.id)).map(a => (
                              <SelectItem key={a.id} value={a.id}>
                                <span>{a.name}</span>
                                {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
@@ -357,7 +359,7 @@ export default function AdminCrews() {
                          <SelectTrigger><SelectValue placeholder={`Шкаф ${idx + 1}`}>{cab ? getAssetName(cab) : 'Не выбрано'}</SelectValue></SelectTrigger>
                          <SelectContent>
                            <SelectItem value="__none__"><span className="text-muted-foreground">— Не выбрано —</span></SelectItem>
-                           {cabinetAssets.filter(a => !usedCabinets.has(a.id) || cabinetsList[idx] === a.id).map(a => (
+                           {cabinetAssets.filter(a => !getUsedIds('cabinet', cabinetsList, idx).has(a.id)).map(a => (
                              <SelectItem key={a.id} value={a.id}>
                                <span>{a.name}</span>
                                {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
