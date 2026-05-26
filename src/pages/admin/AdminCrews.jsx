@@ -25,12 +25,19 @@ const emptyForm = {
   module_type: '', cabinet_type: '', status: 'in_work', photo_url: '', partner: ''
 };
 
+const parseList = (str, minCount = 1) => {
+  const parsed = str ? str.split('\n').map(s => s.trim()).filter(Boolean) : [];
+  return parsed.length >= minCount ? parsed : [...parsed, ...Array(minCount - parsed.length).fill('')];
+};
+
 export default function AdminCrews() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
   const [kits, setKits] = useState(['', '']);
+  const [modulesList, setModulesList] = useState(['']);
+  const [cabinetsList, setCabinetsList] = useState(['']);
   const [currentUser, setCurrentUser] = useState(null);
   const [partnerFilter, setPartnerFilter] = useState('');
 
@@ -91,10 +98,9 @@ export default function AdminCrews() {
       photo_url: crew.photo_url || '',
       partner: crew.partner || '',
     });
-    const parsed = crew.bi_kits_numbers
-      ? crew.bi_kits_numbers.split('\n').map(s => s.trim()).filter(s => s !== '')
-      : ['', ''];
-    setKits(parsed.length >= 2 ? parsed : [...parsed, ...Array(2 - parsed.length).fill('')]);
+    setKits(parseList(crew.bi_kits_numbers, 2));
+    setModulesList(parseList(crew.module_type, 1));
+    setCabinetsList(parseList(crew.cabinet_type, 1));
     setEditId(crew.id);
     setOpen(true);
   };
@@ -104,11 +110,23 @@ export default function AdminCrews() {
     setForm(emptyForm);
     setEditId(null);
     setKits(['', '']);
+    setModulesList(['']);
+    setCabinetsList(['']);
   };
 
   const updateKits = (newKits) => {
     setKits(newKits);
     setForm(f => ({ ...f, bi_kits_numbers: newKits.filter(Boolean).join('\n') }));
+  };
+
+  const updateModules = (newList) => {
+    setModulesList(newList);
+    setForm(f => ({ ...f, module_type: newList.filter(Boolean).join('\n') }));
+  };
+
+  const updateCabinets = (newList) => {
+    setCabinetsList(newList);
+    setForm(f => ({ ...f, cabinet_type: newList.filter(Boolean).join('\n') }));
   };
 
   const handlePhotoUpload = async (e) => {
@@ -138,7 +156,7 @@ export default function AdminCrews() {
         </div>
         <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
           <DialogTrigger asChild>
-            <Button size="sm" onClick={() => { setForm(emptyForm); setEditId(null); }}>
+            <Button size="sm" onClick={() => { setForm(emptyForm); setEditId(null); setModulesList(['']); setCabinetsList(['']); setKits(['', '']); }}>
               <Plus className="w-4 h-4 mr-1" /> Добавить
             </Button>
           </DialogTrigger>
@@ -239,29 +257,65 @@ export default function AdminCrews() {
               </div>
               <div>
                 <Label className="text-xs">Тип модуля</Label>
-                {modules.length > 0 ? (
-                  <Select value={form.module_type} onValueChange={v => setForm({ ...form, module_type: v })}>
-                    <SelectTrigger><SelectValue placeholder="Выберите модуль" /></SelectTrigger>
-                    <SelectContent>
-                      {modules.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input value={form.module_type} onChange={e => setForm({ ...form, module_type: e.target.value })} placeholder="например АРБИ-М" />
-                )}
+                <div className="space-y-2 mt-1">
+                  {modulesList.map((mod, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      {modules.length > 0 ? (
+                        <Select value={mod} onValueChange={v => { const u = [...modulesList]; u[idx] = v; updateModules(u); }}>
+                          <SelectTrigger><SelectValue placeholder={`Модуль ${idx + 1}`} /></SelectTrigger>
+                          <SelectContent>
+                            {modules.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          value={mod}
+                          onChange={e => { const u = [...modulesList]; u[idx] = e.target.value; updateModules(u); }}
+                          placeholder={`например АРБИ-М`}
+                        />
+                      )}
+                      {modulesList.length > 1 && (
+                        <Button type="button" size="icon" variant="outline" onClick={() => updateModules(modulesList.filter((_, i) => i !== idx))}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button type="button" size="sm" variant="outline" onClick={() => updateModules([...modulesList, ''])}>
+                    <Plus className="w-4 h-4 mr-1" /> Добавить модуль
+                  </Button>
+                </div>
               </div>
               <div>
                 <Label className="text-xs">Тип шкафов</Label>
-                {cabinets.length > 0 ? (
-                  <Select value={form.cabinet_type} onValueChange={v => setForm({ ...form, cabinet_type: v })}>
-                    <SelectTrigger><SelectValue placeholder="Выберите шкаф" /></SelectTrigger>
-                    <SelectContent>
-                      {cabinets.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input value={form.cabinet_type} onChange={e => setForm({ ...form, cabinet_type: e.target.value })} />
-                )}
+                <div className="space-y-2 mt-1">
+                  {cabinetsList.map((cab, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      {cabinets.length > 0 ? (
+                        <Select value={cab} onValueChange={v => { const u = [...cabinetsList]; u[idx] = v; updateCabinets(u); }}>
+                          <SelectTrigger><SelectValue placeholder={`Шкаф ${idx + 1}`} /></SelectTrigger>
+                          <SelectContent>
+                            {cabinets.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          value={cab}
+                          onChange={e => { const u = [...cabinetsList]; u[idx] = e.target.value; updateCabinets(u); }}
+                          placeholder={`Шкаф ${idx + 1}`}
+                        />
+                      )}
+                      {cabinetsList.length > 1 && (
+                        <Button type="button" size="icon" variant="outline" onClick={() => updateCabinets(cabinetsList.filter((_, i) => i !== idx))}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button type="button" size="sm" variant="outline" onClick={() => updateCabinets([...cabinetsList, ''])}>
+                    <Plus className="w-4 h-4 mr-1" /> Добавить шкаф
+                  </Button>
+                </div>
               </div>
               <div>
                 <Label className="text-xs">Статус</Label>

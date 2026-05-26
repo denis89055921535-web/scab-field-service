@@ -20,7 +20,7 @@
     },
     "bi_kits_numbers": {
       "type": "string",
-      "description": "BI kit numbers (free text)"
+      "description": "BI kit numbers (newline-separated)"
     },
     "has_internet": {
       "type": "boolean",
@@ -44,11 +44,11 @@
     },
     "module_type": {
       "type": "string",
-      "description": "ARBI module type"
+      "description": "ARBI module types (newline-separated)"
     },
     "cabinet_type": {
       "type": "string",
-      "description": "Cabinet type"
+      "description": "Cabinet types (newline-separated)"
     },
     "status": {
       "type": "string",
