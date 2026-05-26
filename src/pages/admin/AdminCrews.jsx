@@ -56,19 +56,36 @@ export default function AdminCrews() {
     queryFn: () => base44.entities.Asset.list(),
   });
 
-  const biKits = assets.filter(a => a.asset_type === 'bi_kit').map(a => a.name);
-  const modules = assets.filter(a => a.asset_type === 'reader_module').map(a => a.name);
-  const cabinets = assets.filter(a => a.asset_type === 'cabinet').map(a => a.name);
+  const biKitAssets = assets.filter(a => a.asset_type === 'bi_kit');
+  const moduleAssets = assets.filter(a => a.asset_type === 'reader_module');
+  const cabinetAssets = assets.filter(a => a.asset_type === 'cabinet');
 
-  // Собираем все активы, уже занятые в ДРУГИХ бригадах (не в текущей редактируемой)
+  // Вспомогательная функция: получить отображаемое имя по id актива
+  const getAssetName = (id) => assets.find(a => a.id === id)?.name || id;
+
+  // Собираем все id активов, уже занятых в ДРУГИХ бригадах
   const otherCrews = crews.filter(c => c.id !== editId);
   const usedBiKits = new Set(otherCrews.flatMap(c => c.bi_kits_numbers ? c.bi_kits_numbers.split('\n').map(s => s.trim()).filter(Boolean) : []));
   const usedModules = new Set(otherCrews.flatMap(c => c.module_type ? c.module_type.split('\n').map(s => s.trim()).filter(Boolean) : []));
   const usedCabinets = new Set(otherCrews.flatMap(c => c.cabinet_type ? c.cabinet_type.split('\n').map(s => s.trim()).filter(Boolean) : []));
 
+  // Конвертируем список id обратно в имена для сохранения
+  const idsToNames = (idsStr, type) => {
+    if (!idsStr) return '';
+    return idsStr.split('\n').map(id => {
+      const asset = assets.find(a => a.asset_type === type && a.id === id);
+      return asset ? asset.name : id;
+    }).filter(Boolean).join('\n');
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (data) => {
-      const payload = { ...data };
+      const payload = {
+        ...data,
+        bi_kits_numbers: idsToNames(data.bi_kits_numbers, 'bi_kit'),
+        module_type: idsToNames(data.module_type, 'reader_module'),
+        cabinet_type: idsToNames(data.cabinet_type, 'cabinet'),
+      };
       if (editId) return base44.entities.DrillingCrew.update(editId, payload);
       return base44.entities.DrillingCrew.create(payload);
     },
@@ -87,26 +104,42 @@ export default function AdminCrews() {
     },
   });
 
+  // Конвертируем значение (имя или id) в id актива для заданного типа
+  const resolveAssetId = (value, type) => {
+    if (!value) return '';
+    const byId = assets.find(a => a.asset_type === type && a.id === value);
+    if (byId) return byId.id;
+    const byName = assets.find(a => a.asset_type === type && a.name === value);
+    return byName ? byName.id : value;
+  };
+
   const openEdit = (crew) => {
+    const rawKits = parseList(crew.bi_kits_numbers, 2);
+    const rawModules = parseList(crew.module_type, 1);
+    const rawCabinets = parseList(crew.cabinet_type, 1);
+    const resolvedKits = rawKits.map(v => resolveAssetId(v, 'bi_kit'));
+    const resolvedModules = rawModules.map(v => resolveAssetId(v, 'reader_module'));
+    const resolvedCabinets = rawCabinets.map(v => resolveAssetId(v, 'cabinet'));
+
     setForm({
       crew_number: crew.crew_number || '',
       drill_type: crew.drill_type || '',
       field_name: crew.field_name || '',
-      bi_kits_numbers: crew.bi_kits_numbers || '',
+      bi_kits_numbers: resolvedKits.filter(Boolean).join('\n'),
       has_internet: !!crew.has_internet,
       has_wifi: !!crew.has_wifi,
       has_lte: !!crew.has_lte,
       has_satellite: !!crew.has_satellite,
       has_no_internet: !!crew.has_no_internet,
-      module_type: crew.module_type || '',
-      cabinet_type: crew.cabinet_type || '',
+      module_type: resolvedModules.filter(Boolean).join('\n'),
+      cabinet_type: resolvedCabinets.filter(Boolean).join('\n'),
       status: crew.status || 'in_work',
       photo_url: crew.photo_url || '',
       partner: crew.partner || '',
     });
-    setKits(parseList(crew.bi_kits_numbers, 2));
-    setModulesList(parseList(crew.module_type, 1));
-    setCabinetsList(parseList(crew.cabinet_type, 1));
+    setKits(resolvedKits);
+    setModulesList(resolvedModules);
+    setCabinetsList(resolvedCabinets);
     setEditId(crew.id);
     setOpen(true);
   };
@@ -201,12 +234,12 @@ export default function AdminCrews() {
                 <div className="space-y-2 mt-1">
                   {kits.map((kit, idx) => (
                     <div key={idx} className="flex gap-2">
-                      {biKits.length > 0 ? (
+                      {biKitAssets.length > 0 ? (
                         <Select value={kit} onValueChange={v => { const updated = [...kits]; updated[idx] = v; updateKits(updated); }}>
-                          <SelectTrigger><SelectValue placeholder={`Комплект ${idx + 1}`} /></SelectTrigger>
+                          <SelectTrigger><SelectValue placeholder={`Комплект ${idx + 1}`}>{kit ? getAssetName(kit) : ''}</SelectValue></SelectTrigger>
                           <SelectContent>
-                            {assets.filter(a => a.asset_type === 'bi_kit' && (!usedBiKits.has(a.name) || kits[idx] === a.name)).map(a => (
-                              <SelectItem key={a.name} value={a.name}>
+                            {biKitAssets.filter(a => !usedBiKits.has(a.id) || kits[idx] === a.id).map(a => (
+                              <SelectItem key={a.id} value={a.id}>
                                 <span>{a.name}</span>
                                 {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
                               </SelectItem>
@@ -271,12 +304,12 @@ export default function AdminCrews() {
                 <div className="space-y-2 mt-1">
                   {modulesList.map((mod, idx) => (
                     <div key={idx} className="flex gap-2">
-                      {modules.length > 0 ? (
+                      {moduleAssets.length > 0 ? (
                         <Select value={mod} onValueChange={v => { const u = [...modulesList]; u[idx] = v; updateModules(u); }}>
-                          <SelectTrigger><SelectValue placeholder={`Модуль ${idx + 1}`} /></SelectTrigger>
+                          <SelectTrigger><SelectValue placeholder={`Модуль ${idx + 1}`}>{mod ? getAssetName(mod) : ''}</SelectValue></SelectTrigger>
                           <SelectContent>
-                            {assets.filter(a => a.asset_type === 'reader_module' && (!usedModules.has(a.name) || modulesList[idx] === a.name)).map(a => (
-                              <SelectItem key={a.name} value={a.name}>
+                            {moduleAssets.filter(a => !usedModules.has(a.id) || modulesList[idx] === a.id).map(a => (
+                              <SelectItem key={a.id} value={a.id}>
                                 <span>{a.name}</span>
                                 {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
                               </SelectItem>
@@ -307,12 +340,12 @@ export default function AdminCrews() {
                 <div className="space-y-2 mt-1">
                   {cabinetsList.map((cab, idx) => (
                     <div key={idx} className="flex gap-2">
-                      {cabinets.length > 0 ? (
+                      {cabinetAssets.length > 0 ? (
                         <Select value={cab} onValueChange={v => { const u = [...cabinetsList]; u[idx] = v; updateCabinets(u); }}>
-                          <SelectTrigger><SelectValue placeholder={`Шкаф ${idx + 1}`} /></SelectTrigger>
+                          <SelectTrigger><SelectValue placeholder={`Шкаф ${idx + 1}`}>{cab ? getAssetName(cab) : ''}</SelectValue></SelectTrigger>
                           <SelectContent>
-                            {assets.filter(a => a.asset_type === 'cabinet' && (!usedCabinets.has(a.name) || cabinetsList[idx] === a.name)).map(a => (
-                              <SelectItem key={a.name} value={a.name}>
+                            {cabinetAssets.filter(a => !usedCabinets.has(a.id) || cabinetsList[idx] === a.id).map(a => (
+                              <SelectItem key={a.id} value={a.id}>
                                 <span>{a.name}</span>
                                 {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
                               </SelectItem>
