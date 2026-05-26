@@ -244,9 +244,10 @@ export default function AdminCrews() {
                   {kits.map((kit, idx) => (
                     <div key={idx} className="flex gap-2">
                       {biKitAssets.length > 0 ? (
-                        <Select value={kit} onValueChange={v => { const updated = [...kits]; updated[idx] = v; updateKits(updated); }}>
-                          <SelectTrigger><SelectValue placeholder={`Комплект ${idx + 1}`}>{kit ? getAssetName(kit) : ''}</SelectValue></SelectTrigger>
+                        <Select value={kit || '__none__'} onValueChange={v => { const updated = [...kits]; updated[idx] = v === '__none__' ? '' : v; updateKits(updated); }}>
+                          <SelectTrigger><SelectValue placeholder={`Комплект ${idx + 1}`}>{kit ? getAssetName(kit) : 'Не выбрано'}</SelectValue></SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="__none__"><span className="text-muted-foreground">— Не выбрано —</span></SelectItem>
                             {biKitAssets.filter(a => !usedBiKits.has(a.id) || kits[idx] === a.id).map(a => (
                               <SelectItem key={a.id} value={a.id}>
                                 <span>{a.name}</span>
@@ -312,32 +313,34 @@ export default function AdminCrews() {
                 <Label className="text-xs">Тип модуля</Label>
                 <div className="space-y-2 mt-1">
                   {modulesList.map((mod, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      {moduleAssets.length > 0 ? (
-                        <Select value={mod} onValueChange={v => { const u = [...modulesList]; u[idx] = v; updateModules(u); }}>
-                          <SelectTrigger><SelectValue placeholder={`Модуль ${idx + 1}`}>{mod ? getAssetName(mod) : ''}</SelectValue></SelectTrigger>
-                          <SelectContent>
-                            {moduleAssets.filter(a => !usedModules.has(a.id) || modulesList[idx] === a.id).map(a => (
-                              <SelectItem key={a.id} value={a.id}>
-                                <span>{a.name}</span>
-                                {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          value={mod}
-                          onChange={e => { const u = [...modulesList]; u[idx] = e.target.value; updateModules(u); }}
-                          placeholder={`например АРБИ-М`}
-                        />
-                      )}
-                      {modulesList.length > 1 && (
-                        <Button type="button" size="icon" variant="outline" onClick={() => updateModules(modulesList.filter((_, i) => i !== idx))}>
-                          <X className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
+                   <div key={idx} className="flex gap-2">
+                     {moduleAssets.length > 0 ? (
+                       <Select value={mod || '__none__'} onValueChange={v => { const u = [...modulesList]; u[idx] = v === '__none__' ? '' : v; updateModules(u); }}>
+                         <SelectTrigger><SelectValue placeholder={`Модуль ${idx + 1}`}>{mod ? getAssetName(mod) : 'Не выбрано'}</SelectValue></SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="__none__"><span className="text-muted-foreground">— Не выбрано —</span></SelectItem>
+                           {moduleAssets.filter(a => !usedModules.has(a.id) || modulesList[idx] === a.id).map(a => (
+                             <SelectItem key={a.id} value={a.id}>
+                               <span>{a.name}</span>
+                               {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
+                     ) : (
+                       <Input
+                         value={mod}
+                         onChange={e => { const u = [...modulesList]; u[idx] = e.target.value; updateModules(u); }}
+                         placeholder={`например АРБИ-М`}
+                       />
+                     )}
+                     <Button type="button" size="icon" variant="outline" onClick={() => {
+                       if (modulesList.length > 1) updateModules(modulesList.filter((_, i) => i !== idx));
+                       else updateModules(['']);
+                     }}>
+                       <X className="w-4 h-4" />
+                     </Button>
+                   </div>
                   ))}
                   <Button type="button" size="sm" variant="outline" onClick={() => updateModules([...modulesList, ''])}>
                     <Plus className="w-4 h-4 mr-1" /> Добавить модуль
@@ -348,32 +351,34 @@ export default function AdminCrews() {
                 <Label className="text-xs">Тип шкафов</Label>
                 <div className="space-y-2 mt-1">
                   {cabinetsList.map((cab, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      {cabinetAssets.length > 0 ? (
-                        <Select value={cab} onValueChange={v => { const u = [...cabinetsList]; u[idx] = v; updateCabinets(u); }}>
-                          <SelectTrigger><SelectValue placeholder={`Шкаф ${idx + 1}`}>{cab ? getAssetName(cab) : ''}</SelectValue></SelectTrigger>
-                          <SelectContent>
-                            {cabinetAssets.filter(a => !usedCabinets.has(a.id) || cabinetsList[idx] === a.id).map(a => (
-                              <SelectItem key={a.id} value={a.id}>
-                                <span>{a.name}</span>
-                                {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          value={cab}
-                          onChange={e => { const u = [...cabinetsList]; u[idx] = e.target.value; updateCabinets(u); }}
-                          placeholder={`Шкаф ${idx + 1}`}
-                        />
-                      )}
-                      {cabinetsList.length > 1 && (
-                        <Button type="button" size="icon" variant="outline" onClick={() => updateCabinets(cabinetsList.filter((_, i) => i !== idx))}>
-                          <X className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
+                   <div key={idx} className="flex gap-2">
+                     {cabinetAssets.length > 0 ? (
+                       <Select value={cab || '__none__'} onValueChange={v => { const u = [...cabinetsList]; u[idx] = v === '__none__' ? '' : v; updateCabinets(u); }}>
+                         <SelectTrigger><SelectValue placeholder={`Шкаф ${idx + 1}`}>{cab ? getAssetName(cab) : 'Не выбрано'}</SelectValue></SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="__none__"><span className="text-muted-foreground">— Не выбрано —</span></SelectItem>
+                           {cabinetAssets.filter(a => !usedCabinets.has(a.id) || cabinetsList[idx] === a.id).map(a => (
+                             <SelectItem key={a.id} value={a.id}>
+                               <span>{a.name}</span>
+                               {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
+                     ) : (
+                       <Input
+                         value={cab}
+                         onChange={e => { const u = [...cabinetsList]; u[idx] = e.target.value; updateCabinets(u); }}
+                         placeholder={`Шкаф ${idx + 1}`}
+                       />
+                     )}
+                     <Button type="button" size="icon" variant="outline" onClick={() => {
+                       if (cabinetsList.length > 1) updateCabinets(cabinetsList.filter((_, i) => i !== idx));
+                       else updateCabinets(['']);
+                     }}>
+                       <X className="w-4 h-4" />
+                     </Button>
+                   </div>
                   ))}
                   <Button type="button" size="sm" variant="outline" onClick={() => updateCabinets([...cabinetsList, ''])}>
                     <Plus className="w-4 h-4 mr-1" /> Добавить шкаф
