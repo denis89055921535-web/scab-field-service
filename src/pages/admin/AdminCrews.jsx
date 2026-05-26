@@ -60,6 +60,12 @@ export default function AdminCrews() {
   const modules = assets.filter(a => a.asset_type === 'reader_module').map(a => a.name);
   const cabinets = assets.filter(a => a.asset_type === 'cabinet').map(a => a.name);
 
+  // Собираем все активы, уже занятые в ДРУГИХ бригадах (не в текущей редактируемой)
+  const otherCrews = crews.filter(c => c.id !== editId);
+  const usedBiKits = new Set(otherCrews.flatMap(c => c.bi_kits_numbers ? c.bi_kits_numbers.split('\n').map(s => s.trim()).filter(Boolean) : []));
+  const usedModules = new Set(otherCrews.flatMap(c => c.module_type ? c.module_type.split('\n').map(s => s.trim()).filter(Boolean) : []));
+  const usedCabinets = new Set(otherCrews.flatMap(c => c.cabinet_type ? c.cabinet_type.split('\n').map(s => s.trim()).filter(Boolean) : []));
+
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       const payload = { ...data };
@@ -199,7 +205,7 @@ export default function AdminCrews() {
                         <Select value={kit} onValueChange={v => { const updated = [...kits]; updated[idx] = v; updateKits(updated); }}>
                           <SelectTrigger><SelectValue placeholder={`Комплект ${idx + 1}`} /></SelectTrigger>
                           <SelectContent>
-                            {assets.filter(a => a.asset_type === 'bi_kit').map(a => (
+                            {assets.filter(a => a.asset_type === 'bi_kit' && (!usedBiKits.has(a.name) || kits[idx] === a.name)).map(a => (
                               <SelectItem key={a.name} value={a.name}>
                                 <span>{a.name}</span>
                                 {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
@@ -269,7 +275,7 @@ export default function AdminCrews() {
                         <Select value={mod} onValueChange={v => { const u = [...modulesList]; u[idx] = v; updateModules(u); }}>
                           <SelectTrigger><SelectValue placeholder={`Модуль ${idx + 1}`} /></SelectTrigger>
                           <SelectContent>
-                            {assets.filter(a => a.asset_type === 'reader_module').map(a => (
+                            {assets.filter(a => a.asset_type === 'reader_module' && (!usedModules.has(a.name) || modulesList[idx] === a.name)).map(a => (
                               <SelectItem key={a.name} value={a.name}>
                                 <span>{a.name}</span>
                                 {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
@@ -305,7 +311,7 @@ export default function AdminCrews() {
                         <Select value={cab} onValueChange={v => { const u = [...cabinetsList]; u[idx] = v; updateCabinets(u); }}>
                           <SelectTrigger><SelectValue placeholder={`Шкаф ${idx + 1}`} /></SelectTrigger>
                           <SelectContent>
-                            {assets.filter(a => a.asset_type === 'cabinet').map(a => (
+                            {assets.filter(a => a.asset_type === 'cabinet' && (!usedCabinets.has(a.name) || cabinetsList[idx] === a.name)).map(a => (
                               <SelectItem key={a.name} value={a.name}>
                                 <span>{a.name}</span>
                                 {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
