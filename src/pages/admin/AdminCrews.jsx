@@ -63,11 +63,29 @@ export default function AdminCrews() {
   // Вспомогательная функция: получить отображаемое имя по id актива
   const getAssetName = (id) => assets.find(a => a.id === id)?.name || id;
 
-  // Собираем все id активов, уже занятых в ДРУГИХ бригадах
+  // Конвертируем значение (имя или id) в id актива для заданного типа
+  const resolveToId = (value, type) => {
+    if (!value) return null;
+    const byId = assets.find(a => a.asset_type === type && a.id === value);
+    if (byId) return byId.id;
+    const byName = assets.find(a => a.asset_type === type && a.name === value);
+    return byName ? byName.id : null;
+  };
+
+  // Собираем все id активов, уже занятых в ДРУГИХ бригадах (поддерживаем и старые имена и новые id)
   const otherCrews = crews.filter(c => c.id !== editId);
-  const usedBiKits = new Set(otherCrews.flatMap(c => c.bi_kits_numbers ? c.bi_kits_numbers.split('\n').map(s => s.trim()).filter(Boolean) : []));
-  const usedModules = new Set(otherCrews.flatMap(c => c.module_type ? c.module_type.split('\n').map(s => s.trim()).filter(Boolean) : []));
-  const usedCabinets = new Set(otherCrews.flatMap(c => c.cabinet_type ? c.cabinet_type.split('\n').map(s => s.trim()).filter(Boolean) : []));
+  const usedBiKits = new Set(otherCrews.flatMap(c =>
+    (c.bi_kits_numbers ? c.bi_kits_numbers.split('\n').map(s => s.trim()).filter(Boolean) : [])
+      .map(v => resolveToId(v, 'bi_kit')).filter(Boolean)
+  ));
+  const usedModules = new Set(otherCrews.flatMap(c =>
+    (c.module_type ? c.module_type.split('\n').map(s => s.trim()).filter(Boolean) : [])
+      .map(v => resolveToId(v, 'reader_module')).filter(Boolean)
+  ));
+  const usedCabinets = new Set(otherCrews.flatMap(c =>
+    (c.cabinet_type ? c.cabinet_type.split('\n').map(s => s.trim()).filter(Boolean) : [])
+      .map(v => resolveToId(v, 'cabinet')).filter(Boolean)
+  ));
 
   // Конвертируем список id обратно в имена для сохранения
   const idsToNames = (idsStr, type) => {
@@ -104,22 +122,13 @@ export default function AdminCrews() {
     },
   });
 
-  // Конвертируем значение (имя или id) в id актива для заданного типа
-  const resolveAssetId = (value, type) => {
-    if (!value) return '';
-    const byId = assets.find(a => a.asset_type === type && a.id === value);
-    if (byId) return byId.id;
-    const byName = assets.find(a => a.asset_type === type && a.name === value);
-    return byName ? byName.id : value;
-  };
-
   const openEdit = (crew) => {
     const rawKits = parseList(crew.bi_kits_numbers, 2);
     const rawModules = parseList(crew.module_type, 1);
     const rawCabinets = parseList(crew.cabinet_type, 1);
-    const resolvedKits = rawKits.map(v => resolveAssetId(v, 'bi_kit'));
-    const resolvedModules = rawModules.map(v => resolveAssetId(v, 'reader_module'));
-    const resolvedCabinets = rawCabinets.map(v => resolveAssetId(v, 'cabinet'));
+    const resolvedKits = rawKits.map(v => resolveToId(v, 'bi_kit') || v);
+    const resolvedModules = rawModules.map(v => resolveToId(v, 'reader_module') || v);
+    const resolvedCabinets = rawCabinets.map(v => resolveToId(v, 'cabinet') || v);
 
     setForm({
       crew_number: crew.crew_number || '',
