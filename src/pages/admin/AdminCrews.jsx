@@ -199,7 +199,12 @@ export default function AdminCrews() {
                         <Select value={kit} onValueChange={v => { const updated = [...kits]; updated[idx] = v; updateKits(updated); }}>
                           <SelectTrigger><SelectValue placeholder={`Комплект ${idx + 1}`} /></SelectTrigger>
                           <SelectContent>
-                            {biKits.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+                            {assets.filter(a => a.asset_type === 'bi_kit').map(a => (
+                              <SelectItem key={a.name} value={a.name}>
+                                <span>{a.name}</span>
+                                {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
@@ -264,7 +269,12 @@ export default function AdminCrews() {
                         <Select value={mod} onValueChange={v => { const u = [...modulesList]; u[idx] = v; updateModules(u); }}>
                           <SelectTrigger><SelectValue placeholder={`Модуль ${idx + 1}`} /></SelectTrigger>
                           <SelectContent>
-                            {modules.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+                            {assets.filter(a => a.asset_type === 'reader_module').map(a => (
+                              <SelectItem key={a.name} value={a.name}>
+                                <span>{a.name}</span>
+                                {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
@@ -295,7 +305,12 @@ export default function AdminCrews() {
                         <Select value={cab} onValueChange={v => { const u = [...cabinetsList]; u[idx] = v; updateCabinets(u); }}>
                           <SelectTrigger><SelectValue placeholder={`Шкаф ${idx + 1}`} /></SelectTrigger>
                           <SelectContent>
-                            {cabinets.map(name => <SelectItem key={name} value={name}>{name}</SelectItem>)}
+                            {assets.filter(a => a.asset_type === 'cabinet').map(a => (
+                              <SelectItem key={a.name} value={a.name}>
+                                <span>{a.name}</span>
+                                {a.notes && <span className="ml-2 text-xs text-muted-foreground">— {a.notes}</span>}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
