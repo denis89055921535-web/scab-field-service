@@ -22,10 +22,13 @@ const TRIP_STATUSES = {
   needs_repeat: 'Требуется повторный выезд',
 };
 
+const EMPTY_EMPLOYEES = [{ name: '', position: '' }];
+
 const EMPTY_FORM = {
   trip_date: new Date().toISOString().split('T')[0],
   employee_name: '',
   position: '',
+  employees_list: EMPTY_EMPLOYEES,
   crew_number: '',
   field_name: '',
   drill_type: '',
@@ -54,6 +57,7 @@ export default function TripForm() {
 
   const { partner } = usePartner();
   const [form, setForm] = useState({ ...EMPTY_FORM, partner: partner || '' });
+  const [employees, setEmployees] = useState(EMPTY_EMPLOYEES);
   const [showErrors, setShowErrors] = useState(false);
   const [sending, setSending] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
@@ -87,6 +91,8 @@ export default function TripForm() {
   useEffect(() => {
     base44.auth.me().then(user => {
       if (user && !form.employee_name) {
+        const initialEmployees = [{ name: user.full_name || '', position: '' }];
+        setEmployees(initialEmployees);
         setForm(f => ({ ...f, employee_name: user.full_name || '', partner: partner || '' }));
       }
     }).catch(() => {});
@@ -99,6 +105,13 @@ export default function TripForm() {
         : existingTrip.bi_kits_numbers
           ? existingTrip.bi_kits_numbers.split(',').map(s => s.trim()).filter(Boolean)
           : [''];
+      // Восстанавливаем список сотрудников
+      const loadedEmployees = existingTrip.employees_list?.length
+        ? existingTrip.employees_list
+        : existingTrip.employee_name
+          ? [{ name: existingTrip.employee_name, position: existingTrip.position || '' }]
+          : EMPTY_EMPLOYEES;
+      setEmployees(loadedEmployees);
       setForm({
         ...EMPTY_FORM,
         ...existingTrip,
@@ -106,6 +119,7 @@ export default function TripForm() {
         sections: existingTrip.sections || {},
         checklist: existingTrip.checklist || {},
         bi_kits_list: biList,
+        employees_list: loadedEmployees,
       });
     }
   }, [existingTrip]);
@@ -134,6 +148,16 @@ export default function TripForm() {
       navigate('/trips');
     },
   });
+
+  const updateEmployees = (newList) => {
+    setEmployees(newList);
+    setForm(f => ({
+      ...f,
+      employees_list: newList,
+      employee_name: newList.map(e => e.name).filter(Boolean).join(', '),
+      position: newList.map(e => e.position).filter(Boolean).join(', '),
+    }));
+  };
 
   const handleCrewSelect = (crewNumber) => {
     const crew = crews.find(c => c.crew_number === crewNumber);
@@ -272,17 +296,6 @@ export default function TripForm() {
           </div>
         </div>
 
-        <div>
-          <Label className="text-xs">ФИО сотрудника *</Label>
-          <Input
-            value={form.employee_name}
-            onChange={e => setForm(f => ({ ...f, employee_name: e.target.value }))}
-            placeholder="ФИО сотрудника"
-            readOnly={isReadOnly}
-            disabled={isReadOnly}
-          />
-        </div>
-
         {form.partner && (
           <div className="px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium">
             Партнёр: {form.partner}
@@ -290,18 +303,45 @@ export default function TripForm() {
         )}
 
         <div>
-          <Label className="text-xs">Должность</Label>
-          <MobileSelect
-            value={form.position || ''}
-            onValueChange={v => setForm(f => ({ ...f, position: v }))}
-            placeholder="Выберите должность"
-            disabled={isReadOnly}
-            options={[
-              { value: 'Техник', label: 'Техник' },
-              { value: 'Инженер', label: 'Инженер' },
-              { value: 'Супервайзер', label: 'Супервайзер' },
-            ]}
-          />
+          <div className="flex items-center justify-between mb-1">
+            <Label className="text-xs">Сотрудники *</Label>
+            {!isReadOnly && (
+              <button type="button" onClick={() => updateEmployees([...employees, { name: '', position: '' }])} className="flex items-center gap-1 text-xs text-primary hover:underline">
+                <Plus className="w-3 h-3" /> Добавить
+              </button>
+            )}
+          </div>
+          <div className="space-y-2">
+            {employees.map((emp, idx) => (
+              <div key={idx} className="flex gap-2 items-start">
+                <div className="flex-1 space-y-1.5">
+                  <Input
+                    value={emp.name}
+                    onChange={e => { const u = [...employees]; u[idx] = { ...u[idx], name: e.target.value }; updateEmployees(u); }}
+                    placeholder="ФИО сотрудника"
+                    readOnly={isReadOnly}
+                    disabled={isReadOnly}
+                  />
+                  <MobileSelect
+                    value={emp.position || ''}
+                    onValueChange={v => { const u = [...employees]; u[idx] = { ...u[idx], position: v }; updateEmployees(u); }}
+                    placeholder="Должность"
+                    disabled={isReadOnly}
+                    options={[
+                      { value: 'Техник', label: 'Техник' },
+                      { value: 'Инженер', label: 'Инженер' },
+                      { value: 'Супервайзер', label: 'Супервайзер' },
+                    ]}
+                  />
+                </div>
+                {!isReadOnly && employees.length > 1 && (
+                  <button type="button" onClick={() => updateEmployees(employees.filter((_, i) => i !== idx))} className="text-destructive hover:opacity-70 mt-1.5">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div>
