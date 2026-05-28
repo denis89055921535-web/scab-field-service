@@ -291,12 +291,16 @@ export default function TripForm() {
 
         <div>
           <Label className="text-xs">Должность</Label>
-          <Input
+          <MobileSelect
             value={form.position || ''}
-            onChange={e => setForm(f => ({ ...f, position: e.target.value }))}
-            placeholder="Должность сотрудника"
-            readOnly={isReadOnly}
+            onValueChange={v => setForm(f => ({ ...f, position: v }))}
+            placeholder="Выберите должность"
             disabled={isReadOnly}
+            options={[
+              { value: 'Техник', label: 'Техник' },
+              { value: 'Инженер', label: 'Инженер' },
+              { value: 'Супервайзер', label: 'Супервайзер' },
+            ]}
           />
         </div>
 
