@@ -41,13 +41,14 @@ export async function sendIncidentByEmail(form, email) {
 Количество фото: ${form.photos?.length || 0}
   `.trim();
 
-  const { base44 } = await import('@/api/base44Client');
-  const user = await base44.auth.me();
-  if (!user?.email) throw new Error('Email пользователя не определён');
-
-  await base44.integrations.Core.SendEmail({
-    to: user.email,
-    subject: `Авария: ${form.object_name || '—'} от ${fmt(form.incident_date)}`,
-    body,
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch('https://scabpro.com/api/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({
+      subject: `Отчёт об аварии — ${form.object_name || '—'} — ${fmt(form.incident_date)}`,
+      body: body.replace(/\n/g, '<br>'),
+    })
   });
+  if (!response.ok) throw new Error('Ошибка отправки email');
 }

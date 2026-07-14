@@ -243,9 +243,14 @@ ${trip.comment ? `<hr style="margin:16px 0"><p><strong>Комментарий:</
   const user = await base44.auth.me();
   if (!user?.email) throw new Error('Email пользователя не определён');
 
-  await base44.integrations.Core.SendEmail({
-    to: user.email,
-    subject: `Отчёт о выезде — Бригада №${trip.crew_number || '—'} — ${trip.trip_date || ''}`,
-    body,
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch('https://scabpro.com/api/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: JSON.stringify({
+      subject: `Отчёт о выезде — Бригада №${trip.crew_number || '—'} — ${trip.trip_date || ''}`,
+      body,
+    })
   });
+  if (!response.ok) throw new Error('Ошибка отправки email');
 }

@@ -38,17 +38,30 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [], ass
 
   return (
     <div className="space-y-4">
-      {crew.photo_url ? (
-        <img
-          src={crew.photo_url}
-          alt={`БУ ${crew.crew_number}`}
-          className="w-full h-48 object-cover rounded-xl"
-        />
-      ) : (
-        <div className="w-full h-48 bg-muted rounded-xl flex items-center justify-center">
-          <span className="text-5xl font-bold text-muted-foreground">{crew.crew_number}</span>
-        </div>
-      )}
+      {(() => {
+        const photos = crew.photos && crew.photos.length > 0 
+          ? crew.photos 
+          : crew.photo_url ? [crew.photo_url] : [];
+        if (photos.length === 0) return (
+          <div className="w-full h-48 bg-muted rounded-xl flex items-center justify-center">
+            <span className="text-5xl font-bold text-muted-foreground">{crew.crew_number}</span>
+          </div>
+        );
+        if (photos.length === 1) return (
+          <img src={photos[0]} alt={`БУ ${crew.crew_number}`} className="w-full h-48 object-cover rounded-xl" />
+        );
+        return (
+          <div className="space-y-2">
+            <img src={photos[0]} alt={`БУ ${crew.crew_number}`} className="w-full h-48 object-cover rounded-xl" />
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {photos.map((url, i) => (
+                <img key={i} src={url} alt="" className="w-20 h-20 object-cover rounded-lg shrink-0 cursor-pointer border-2 border-transparent hover:border-primary transition-all"
+                  onClick={() => window.open(url, '_blank')} />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Бригада №{crew.crew_number}</h2>

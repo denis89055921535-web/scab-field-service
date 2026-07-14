@@ -140,10 +140,16 @@ export default function Incidents() {
   const handleSend = async () => {
     setSending(true);
     try {
-      await sendIncidentByEmail(form);
-      toast.success('Отчёт отправлен на ваш email');
+      let savedForm = form;
+      if (!editId) {
+        const saved = await saveMutation.mutateAsync({ ...form, partner: partner || '' });
+        savedForm = { ...form, ...saved };
+      }
+      await sendIncidentByEmail(savedForm);
+      toast.success('Отчёт сохранён и отправлен');
+      closeDialog();
     } catch {
-      toast.error('Ошибка отправки');
+      toast.error('Ошибка сохранения или отправки');
     }
     setSending(false);
   };

@@ -8,6 +8,25 @@ import { cn } from '@/lib/utils';
 
 export const CHECKLIST_SECTIONS = [
   {
+    key: 'preparation',
+    title: 'Подготовка к выезду',
+    fields: [
+      { key: 'zip', label: 'Наличие ЗИП', type: 'yesno' },
+      { key: 'antenna', label: 'Корпусная антенна', type: 'yesno' },
+      { key: 'reader_cable', label: 'Ридер. Кабель Type-C', type: 'yesno' },
+      { key: 'twisted_pair', label: 'Кабель витой пары', type: 'yesno' },
+      { key: 'metal_hose', label: 'Металлорукав', type: 'yesno' },
+      { key: 'corrugated_cable', label: 'Гофрированный кабель', type: 'yesno' },
+      { key: 'laptop', label: 'Ноутбук с сетевым адаптером', type: 'yesno' },
+      { key: 'tsd', label: 'ТСД', type: 'yesno' },
+      { key: 'toolbox', label: 'Ящик с ручным инструментом', type: 'yesno' },
+      { key: 'ppe', label: 'СИЗ, страховочный пояс для работ на высоте', type: 'yesno' },
+      { key: 'rfid_tag', label: 'Тестовая RFID-метка', type: 'yesno' },
+      { key: 'rechip_kit', label: 'Комплект для перечиповки', type: 'yesno' },
+      { key: 'cable_connectors', label: 'Разъемы для кабельной сборки', type: 'yesno' },
+    ],
+  },
+  {
     key: 'antennas',
     title: 'Антенны',
     fields: [
@@ -18,21 +37,32 @@ export const CHECKLIST_SECTIONS = [
   },
   {
     key: 'cabinets',
-    title: 'Шкафы',
+    title: 'Шкаф модули',
     fields: [
       { key: 'power', label: 'Подключение к электросети', type: 'yesno' },
       { key: 'damage', label: 'Отсутствие повреждений', type: 'yesno' },
       { key: 'comm_lines', label: 'Проверка коммуникационных линий', type: 'yesno' },
       { key: 'external', label: 'Проверка внешних подключений', type: 'yesno' },
-      { key: 'indicators', label: 'Проверка индикации на каждом компоненте', type: 'yesno' },
+      { key: 'indicators', label: 'Проверка на наличие световой индикации (Внешняя/Внутренняя)', type: 'yesno' },
+      { key: 'quick_connect', label: 'Контакт быстросъемных соединений', type: 'yesno' },
+      { key: 'silica_gel', label: 'Проверка состояния силикагеля', type: 'yesno' },
+    ],
+  },
+  {
+    key: 'cabinet_reg',
+    title: 'Шкаф модуля регистрации',
+    fields: [
+      { key: 'rfid_config', label: 'Проверка поступления конфигурации на RFID-считыватель', type: 'yesno' },
     ],
   },
   {
     key: 'cables',
-    title: 'Проверка кабелей',
+    title: 'Кабельная сборка',
     fields: [
       { key: 'visual', label: 'Визуальный осмотр', type: 'yesno' },
-      { key: 'corrugated', label: 'Проверка гофрированного кожуха', type: 'yesno' },
+      { key: 'no_damage', label: 'Отсутствие повреждений', type: 'yesno' },
+      { key: 'corrugated', label: 'Проверка состояния гофрированного кожуха', type: 'yesno' },
+      { key: 'grounding', label: 'Проверка заземления каждого шкафа модуля', type: 'yesno' },
       { key: 'connections', label: 'Проверка соединений', type: 'yesno' },
       { key: 'connectors', label: 'Проверка разъемов', type: 'yesno' },
       { key: 'fasteners', label: 'Проверка крепежей', type: 'yesno' },
@@ -69,7 +99,8 @@ export const CHECKLIST_SECTIONS = [
       { key: 'availability', label: 'Проверка доступности оборудования', type: 'yesno', hasPhotoComment: true },
       { key: 'internet', label: 'Проверка доступности сети Интернет', type: 'yesno', hasPhotoComment: true },
       { key: 'mpc', label: 'Проверка работы служб на МРС / миниПК', type: 'yesno', hasPhotoComment: true },
-      { key: 'rfid_reader', label: 'Проверка работы RFID-считывателя / RFID-сканера', type: 'yesno', hasPhotoComment: true },
+      { key: 'rfid_dirty', label: 'Проверка тестовой метки на грязные антенны', type: 'yesno', hasPhotoComment: true },
+      { key: 'rfid_clean', label: 'Проверка тестовой метки на чистые антенны', type: 'yesno', hasPhotoComment: true },
       { key: 'tsd', label: 'Проверка ТСД', type: 'yesno', hasPhotoComment: true },
     ],
   },
@@ -155,10 +186,20 @@ function PhotoUpload({ photos = [], onAdd, onRemove }) {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     setUploading(true);
-    const urls = await Promise.all(files.map(f => base44.integrations.Core.UploadFile({ file: f }).then(r => r.file_url)));
-    onAdd(urls);
+    try {
+      const urls = [];
+      for (const f of files) {
+        const result = await base44.integrations.Core.UploadFile({ file: f });
+        if (!result?.file_url) throw new Error('Сервер не вернул ссылку на файл');
+        urls.push(result.file_url);
+      }
+      onAdd(urls);
+      toast.success('Фото загружено');
+    } catch (err) {
+      toast.error('Ошибка загрузки фото: ' + (err.message || 'неизвестная ошибка'));
+    }
     setUploading(false);
-    toast.success('Фото загружено');
+    e.target.value = '';
   };
 
   return (

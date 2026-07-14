@@ -22,7 +22,7 @@ const PARTNERS = ['ИНК-Сервис', 'ИНК-ТКРС', 'Газпром Бу
 const emptyForm = {
   crew_number: '', drill_type: '', field_name: '', bi_kits_numbers: '', 
   has_internet: false, has_wifi: false, has_lte: false, has_satellite: false, has_no_internet: false,
-  module_type: '', cabinet_type: '', status: 'in_work', photo_url: '', partner: ''
+  module_type: '', cabinet_type: '', status: 'in_work', photo_url: '', photos: [], partner: ''
 };
 
 const parseList = (str, minCount = 1) => {
@@ -150,6 +150,7 @@ export default function AdminCrews() {
       cabinet_type: resolvedCabinets.filter(Boolean).join('\n'),
       status: crew.status || 'in_work',
       photo_url: crew.photo_url || '',
+      photos: crew.photos || [],
       partner: crew.partner || '',
     });
     setKits(resolvedKits);
@@ -184,11 +185,23 @@ export default function AdminCrews() {
   };
 
   const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm(f => ({ ...f, photo_url: file_url }));
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm(f => ({
+        ...f,
+        photo_url: f.photo_url || file_url,
+        photos: [...(f.photos || []), file_url]
+      }));
+    }
     toast.success('Фото загружено');
+  };
+  const removePhoto = (idx) => {
+    setForm(f => {
+      const newPhotos = (f.photos || []).filter((_, i) => i !== idx);
+      return { ...f, photos: newPhotos, photo_url: newPhotos[0] || '' };
+    });
   };
 
   const filteredCrews = partnerFilter ? crews.filter(c => c.partner === partnerFilter) : crews;
@@ -405,12 +418,20 @@ export default function AdminCrews() {
               <div>
                 <Label className="text-xs">Фото БУ</Label>
                 <div className="flex items-center gap-3 mt-1">
-                  {form.photo_url && <img src={form.photo_url} className="w-16 h-16 rounded-lg object-cover" alt="" />}
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {(form.photos && form.photos.length > 0 ? form.photos : form.photo_url ? [form.photo_url] : []).map((url, i) => (
+                      <div key={i} className="relative">
+                        <img src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
+                        <button type="button" onClick={() => removePhoto(i)}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                      </div>
+                    ))}
+                  </div>
                   <label className="cursor-pointer">
                     <Button variant="outline" size="sm" asChild>
-                      <span><Camera className="w-4 h-4 mr-1" /> Загрузить</span>
+                      <span><Camera className="w-4 h-4 mr-1" /> Добавить фото</span>
                     </Button>
-                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
                   </label>
                 </div>
               </div>

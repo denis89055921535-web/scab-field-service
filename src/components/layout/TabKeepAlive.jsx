@@ -6,14 +6,14 @@ import { useLocation } from 'react-router-dom';
 import Crews from '@/pages/Crews';
 import Trips from '@/pages/Trips';
 import Warehouse from '@/pages/Warehouse';
-import Incidents from '@/pages/Incidents';
+import Instructions from '@/pages/Instructions';
 import Profile from '@/pages/Profile';
 
 const TAB_ROUTES = [
   { path: '/', Component: Crews },
   { path: '/trips', Component: Trips },
   { path: '/warehouse', Component: Warehouse },
-  { path: '/incidents', Component: Incidents },
+  { path: '/instructions', Component: Instructions },
   { path: '/profile', Component: Profile },
 ];
 

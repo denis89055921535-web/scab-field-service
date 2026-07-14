@@ -24,6 +24,7 @@ import AdminWarehouse from '@/pages/admin/AdminWarehouse';
 import AdminIncidents from '@/pages/admin/AdminIncidents';
 import Incidents from '@/pages/Incidents';
 import Warehouse from '@/pages/Warehouse';
+import Login from '@/pages/Login';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -40,24 +41,20 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
+      return <Login />;
     }
   }
 
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        {/* Tab routes: rendered by TabKeepAlive in AppLayout, route just needs to exist */}
         <Route path="/" element={null} />
         <Route path="/trips" element={null} />
         <Route path="/warehouse" element={null} />
-        <Route path="/incidents" element={null} />
         <Route path="/profile" element={null} />
-        {/* Sub-routes rendered via Outlet */}
         <Route path="/crew/:id" element={<CrewView />} />
         <Route path="/trips/:id" element={<TripForm />} />
-        <Route path="/instructions" element={<Instructions />} />
+        <Route path="/instructions" element={null} />
       </Route>
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminCrews />} />
@@ -67,6 +64,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/incidents" element={<AdminIncidents />} />
         <Route path="/admin/users" element={<AdminUsers />} />
       </Route>
+      <Route path="/login" element={<Login />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

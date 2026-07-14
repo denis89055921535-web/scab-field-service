@@ -63,7 +63,7 @@ export default function TripForm() {
   const [geoLoading, setGeoLoading] = useState(false);
 
   // Запрет редактирования для любых сохранённых выездов
-  const isReadOnly = !isNew;
+  const isReadOnly = !isNew && !!form.email_sent;
 
   const { data: crews = [] } = useQuery({
     queryKey: ['crews'],
@@ -142,10 +142,14 @@ export default function TripForm() {
     onError: (_err, _data, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(['trips'], ctx.previous);
     },
-    onSuccess: () => {
+    onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
       toast.success(isNew ? 'Выезд создан' : 'Выезд обновлён');
-      navigate('/trips');
+      if (isNew) {
+        navigate('/trips');
+      } else if (saved) {
+        setForm(f => ({ ...f, ...saved }));
+      }
     },
   });
 
@@ -216,8 +220,15 @@ export default function TripForm() {
 
   const handleSendEmail = async (savedTrip) => {
     setSending(true);
-    await sendReportByEmail(savedTrip || form);
-    toast.success('Отчёт отправлен на ваш email');
+    try {
+      await sendReportByEmail(savedTrip || form);
+      toast.success('Отчёт отправлен на ваш email');
+      if (!(savedTrip || form).email_sent) {
+        saveMutation.mutate({ ...(savedTrip || form), email_sent: true });
+      }
+    } catch {
+      toast.error('Ошибка отправки');
+    }
     setSending(false);
   };
 
@@ -226,6 +237,8 @@ export default function TripForm() {
     saveMutation.mutate(data, {
       onSuccess: async (saved) => {
         await handleSendEmail(saved || data);
+        const finalData = { ...(saved || data), email_sent: true };
+        saveMutation.mutate(finalData);
       }
     });
   };
@@ -570,6 +583,16 @@ export default function TripForm() {
             className="flex-1 h-11"
             onClick={handleSubmitAndSend}
             disabled={saveMutation.isPending || sending}
+          >
+            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+            Отправить отчёт
+          </Button>
+        )}
+        {isReadOnly && (
+          <Button
+            className="flex-1 h-11"
+            onClick={() => handleSendEmail(form)}
+            disabled={sending}
           >
             {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
             Отправить отчёт

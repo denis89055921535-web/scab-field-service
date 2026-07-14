@@ -7,7 +7,7 @@ import PartnerSelect from './PartnerSelect';
 import { ChevronDown } from 'lucide-react';
 import { usePartner } from '@/lib/PartnerContext';
 
-const TAB_PATHS = ['/', '/trips', '/warehouse', '/incidents', '/profile'];
+const TAB_PATHS = ['/', '/trips', '/warehouse', '/instructions', '/profile'];
 
 export default function AppLayout() {
   const location = useLocation();
