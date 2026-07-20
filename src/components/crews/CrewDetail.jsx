@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { resolvePhotoUrl } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,15 +49,15 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [], ass
           </div>
         );
         if (photos.length === 1) return (
-          <img src={photos[0]} alt={`БУ ${crew.crew_number}`} className="w-full h-48 object-cover rounded-xl" />
+          <img src={resolvePhotoUrl(photos[0])} alt={`БУ ${crew.crew_number}`} className="w-full h-48 object-cover rounded-xl" />
         );
         return (
           <div className="space-y-2">
-            <img src={photos[0]} alt={`БУ ${crew.crew_number}`} className="w-full h-48 object-cover rounded-xl" />
+            <img src={resolvePhotoUrl(photos[0])} alt={`БУ ${crew.crew_number}`} className="w-full h-48 object-cover rounded-xl" />
             <div className="flex gap-2 overflow-x-auto pb-1">
               {photos.map((url, i) => (
-                <img key={i} src={url} alt="" className="w-20 h-20 object-cover rounded-lg shrink-0 cursor-pointer border-2 border-transparent hover:border-primary transition-all"
-                  onClick={() => window.open(url, '_blank')} />
+                <img key={i} src={resolvePhotoUrl(url)} alt="" className="w-20 h-20 object-cover rounded-lg shrink-0 cursor-pointer border-2 border-transparent hover:border-primary transition-all"
+                  onClick={() => window.open(resolvePhotoUrl(url), '_blank')} />
               ))}
             </div>
           </div>

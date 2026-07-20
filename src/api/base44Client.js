@@ -1,5 +1,14 @@
 const API_URL = 'https://scabpro.com/api';
+// Базовый адрес сервера без /api — для картинок и файлов
+export const SERVER_URL = API_URL.replace(/\/api$/, '');
 
+// Превращает любой путь к фото в корректный абсолютный URL
+export function resolvePhotoUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const clean = path.replace(/^\/+/, '');
+  return `${SERVER_URL}/${clean}`;
+}
 const getToken = () => localStorage.getItem('auth_token');
 
 async function request(method, endpoint, data = null) {
