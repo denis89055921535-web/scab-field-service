@@ -1,5 +1,3 @@
-import { cacheSet, cacheGet, outboxAdd, genId } from '@/lib/offlineDb';
-import { checkOnline } from '@/lib/network';
 const API_URL = 'https://scabpro.com/api';
 // Базовый адрес сервера без /api — для картинок и файлов
 export const SERVER_URL = API_URL.replace(/\/api$/, '');
@@ -35,18 +33,8 @@ async function request(method, endpoint, data = null) {
 function createEntityClient(endpoint) {
   return {
     list: async (sortOrFilters = {}) => {
-      try {
-        const result = await request('GET', endpoint);
-        const data = result?.data ?? result ?? [];
-        // Сохраняем в кеш для офлайн-доступа
-        await cacheSet(`list:${endpoint}`, data);
-        return data;
-      } catch (err) {
-        // Нет сети — отдаём из кеша
-        const cached = await cacheGet(`list:${endpoint}`);
-        if (cached) return cached;
-        throw err;
-      }
+      const result = await request('GET', endpoint);
+      return result?.data ?? result ?? [];
     },
     filter: async (filters = {}) => {
       // Если есть id — используем GET /:id
@@ -59,24 +47,7 @@ function createEntityClient(endpoint) {
       return result?.data ?? result ?? [];
     },
     get: (id) => request('GET', `${endpoint}/${id}`),
-    create: async (data) => {
-      const online = await checkOnline();
-      if (online) {
-        return request('POST', endpoint, data);
-      }
-      // Офлайн: генерируем id, кладём в очередь
-      const localId = data.id || genId();
-      const record = {
-        localId,
-        endpoint,
-        data: { ...data, id: localId },
-        status: 'pending',
-        createdAt: Date.now(),
-      };
-      await outboxAdd(record);
-      // Возвращаем отчёт с пометкой, что он ждёт отправки
-      return { ...data, id: localId, _offline: true };
-    },
+    create: (data) => request('POST', endpoint, data),
     update: (id, data) => request('PUT', `${endpoint}/${id}`, data),
     delete: (id) => request('DELETE', `${endpoint}/${id}`),
   };

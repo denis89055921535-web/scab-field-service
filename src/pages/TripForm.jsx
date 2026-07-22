@@ -129,27 +129,18 @@ export default function TripForm() {
       if (isNew) return base44.entities.TripLog.create(data);
       return base44.entities.TripLog.update(tripId, data);
     },
-    onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: ['trips'] });
-      const previous = queryClient.getQueryData(['trips']);
-      queryClient.setQueryData(['trips'], (old = []) =>
-        isNew
-          ? [{ ...data, id: '__optimistic__', created_date: new Date().toISOString() }, ...old]
-          : old.map(t => t.id === tripId ? { ...t, ...data } : t)
-      );
-      return { previous };
-    },
-    onError: (_err, _data, ctx) => {
-      if (ctx?.previous) queryClient.setQueryData(['trips'], ctx.previous);
-    },
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
-      toast.success(isNew ? 'Выезд создан' : 'Выезд обновлён');
+      const offline = saved?._offline;
+      toast.success(offline ? 'Сохранено на устройстве (не отправлено)' : (isNew ? 'Выезд создан' : 'Выезд обновлён'));
       if (isNew) {
         navigate('/trips');
       } else if (saved) {
         setForm(f => ({ ...f, ...saved }));
       }
+    },
+    onError: (err) => {
+      toast.error('Ошибка сохранения: ' + (err.message || 'неизвестная'));
     },
   });
 
@@ -255,10 +246,10 @@ export default function TripForm() {
       (pos) => {
         setForm(f => ({
           ...f,
-          geo_lat: pos.coords.latitude,
-          geo_lon: pos.coords.longitude,
-          geo_accuracy: Math.round(pos.coords.accuracy),
-          geo_timestamp: new Date().toISOString(),
+          gps_lat: pos.coords.latitude,
+          gps_lon: pos.coords.longitude,
+          gps_accuracy: Math.round(pos.coords.accuracy),
+          gps_timestamp: new Date().toISOString(),
         }));
         setGeoLoading(false);
         toast.success('Геопозиция получена');
@@ -510,20 +501,20 @@ export default function TripForm() {
         {/* Геопозиция */}
         <div>
           <Label className="text-xs mb-2 block">Геопозиция с места</Label>
-          {form.geo_lat ? (
+          {form.gps_lat ? (
             <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
               <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-green-800 dark:text-green-400">
-                  {form.geo_lat.toFixed(5)}, {form.geo_lon.toFixed(5)}
+                  {Number(form.gps_lat).toFixed(5)}, {Number(form.gps_lon).toFixed(5)}
                 </p>
                 <p className="text-xs text-green-600 dark:text-green-500">
-                  Точность: ±{form.geo_accuracy} м
-                  {form.geo_timestamp && ` · ${new Date(form.geo_timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`}
+                  Точность: ±{form.gps_accuracy} м
+                  {form.gps_timestamp && ` · ${new Date(form.gps_timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`}
                 </p>
               </div>
               <a
-                href={`https://maps.google.com/?q=${form.geo_lat},${form.geo_lon}`}
+                href={`https://maps.google.com/?q=${form.gps_lat},${form.gps_lon}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-primary underline flex-shrink-0"
@@ -531,7 +522,7 @@ export default function TripForm() {
                 Карта
               </a>
               {!isReadOnly && (
-                <button type="button" onClick={() => setForm(f => ({ ...f, geo_lat: null, geo_lon: null, geo_accuracy: null, geo_timestamp: null }))} className="text-muted-foreground hover:text-destructive">
+                <button type="button" onClick={() => setForm(f => ({ ...f, gps_lat: null, gps_lon: null, gps_accuracy: null, _timestamp: null }))} className="text-muted-foreground hover:text-destructive">
                   <X className="w-4 h-4" />
                 </button>
               )}
