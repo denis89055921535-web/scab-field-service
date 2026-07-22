@@ -1,3 +1,4 @@
+import { checkOnline } from '@/lib/network';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -223,15 +224,32 @@ export default function TripForm() {
     setSending(false);
   };
 
-  const handleSubmitAndSend = async () => {
-    const data = { ...form, status: 'completed' };
-    saveMutation.mutate(data, {
-      onSuccess: async (saved) => {
-        await handleSendEmail(saved || data);
-        const finalData = { ...(saved || data), email_sent: true };
-        saveMutation.mutate(finalData);
+const handleSubmitAndSend = async () => {
+    const online = await checkOnline();
+    if (!online) {
+      // Офлайн — письмо отправить нельзя, сохраняем как "не отправлен"
+      saveMutation.mutate({ ...form, status: 'completed', email_sent: false });
+      toast('Нет интернета. Отчёт сохранён — отправьте его, когда появится сеть.');
+      return;
+    }
+    // Онлайн — сохраняем на сервер и отправляем письмо
+    setSending(true);
+    try {
+      const data = { ...form, status: 'completed', email_sent: true };
+      if (isNew) {
+        await base44.entities.TripLog.create(data);
+      } else {
+        await base44.entities.TripLog.update(tripId, data);
       }
-    });
+      await sendReportByEmail(data);
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      toast.success('Отчёт сохранён и отправлен на email');
+      navigate('/trips');
+    } catch (err) {
+      toast.error('Ошибка отправки: ' + (err.message || 'неизвестная'));
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleExportExcel = () => exportToExcel(form);

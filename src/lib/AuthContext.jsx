@@ -27,18 +27,51 @@ export const AuthProvider = ({ children }) => {
         setAuthError({ type: 'auth_required', message: 'Authentication required' });
         return;
       }
-      const res = await fetch(`${API_URL}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Unauthorized');
+
+      // Пробуем проверить токен на сервере
+      let res;
+      try {
+        res = await fetch(`${API_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (networkErr) {
+        // СЕТИ НЕТ — доверяем сохранённому токену, пускаем в офлайн-режим
+        const cachedUser = localStorage.getItem('cached_user');
+        setUser(cachedUser ? JSON.parse(cachedUser) : null);
+        setIsAuthenticated(true);
+        setAuthError(null);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+        return;
+      }
+
+      // Сервер ответил, но токен невалиден (401) — реально разлогиниваем
+      if (!res.ok) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('cached_user');
+        setIsAuthenticated(false);
+        setAuthError({ type: 'auth_required', message: 'Authentication required' });
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+        return;
+      }
+
+      // Успех — сохраняем пользователя в кеш для офлайна
       const currentUser = await res.json();
+      localStorage.setItem('cached_user', JSON.stringify(currentUser));
       setUser(currentUser);
       setIsAuthenticated(true);
       setAuthError(null);
     } catch (error) {
-      localStorage.removeItem('auth_token');
-      setIsAuthenticated(false);
-      setAuthError({ type: 'auth_required', message: 'Authentication required' });
+      // Непредвиденная ошибка — не стираем токен, просто пускаем если он есть
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        setIsAuthenticated(true);
+        setAuthError(null);
+      } else {
+        setIsAuthenticated(false);
+        setAuthError({ type: 'auth_required', message: 'Authentication required' });
+      }
     } finally {
       setIsLoadingAuth(false);
       setAuthChecked(true);
@@ -57,6 +90,7 @@ export const AuthProvider = ({ children }) => {
     }
     const data = await res.json();
     localStorage.setItem('auth_token', data.token);
+    localStorage.setItem('cached_user', JSON.stringify(data.user));
     setUser(data.user);
     setIsAuthenticated(true);
     setAuthError(null);

@@ -1,3 +1,4 @@
+import { outboxGetAll } from '@/lib/offlineDb';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -49,13 +50,28 @@ export default function Trips() {
       : base44.entities.TripLog.filter({ created_by: currentUser.email }, '-trip_date'),
     enabled: !!currentUser,
   });
+// Локальные (неотправленные) отчёты из outbox
+  const { data: localTrips = [] } = useQuery({
+    queryKey: ['localTrips'],
+    queryFn: async () => {
+      const records = await outboxGetAll();
+      return records
+        .filter(r => r.endpoint === '/trip-logs')
+        .map(r => ({ ...r.data, _local: true, _localId: r.localId, _syncStatus: r.status }));
+    },
+    refetchInterval: 3000,
+  });
+
+  // Склеиваем: локальные сверху, серверные ниже (без дублей по id)
+  const localIds = new Set(localTrips.map(t => t.id));
+  const allTrips = [...localTrips, ...trips.filter(t => !localIds.has(t.id))];
 
   const { data: crews = [] } = useQuery({
     queryKey: ['crews'],
     queryFn: () => base44.entities.DrillingCrew.list(),
   });
 
-  const filteredTrips = trips.filter(t => {
+  const filteredTrips = allTrips.filter(t => {
     if (crewFilter !== 'all' && t.crew_number !== crewFilter) return false;
     if (employeeFilter && !t.employee_name?.toLowerCase().includes(employeeFilter.toLowerCase())) return false;
     if (dateFrom && t.trip_date && t.trip_date < dateFrom) return false;
@@ -65,7 +81,7 @@ export default function Trips() {
   });
 
   // Get unique crew numbers from trips for filter options
-  const crewNumbers = [...new Set(trips.map(t => t.crew_number).filter(Boolean))].sort();
+ const crewNumbers = [...new Set(allTrips.map(t => t.crew_number).filter(Boolean))].sort();
 
   return (
     <div ref={containerRef} className="overflow-y-auto h-full">
@@ -174,7 +190,16 @@ export default function Trips() {
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <h3 className="font-semibold text-sm">Бригада №{trip.crew_number}</h3>
-                  <StatusBadge statusMap={tripStatuses} status={trip.status} />
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <StatusBadge statusMap={tripStatuses} status={trip.status} />
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
+                      trip.email_sent
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
+                    }`}>
+                      {trip.email_sent ? 'Отправлен' : 'Не отправлен'}
+                    </span>
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
