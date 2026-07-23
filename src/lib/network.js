@@ -1,23 +1,46 @@
 import { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Network } from '@capacitor/network';
 
 const API_URL = 'https://scabpro.com/api';
 
-// Реальная проверка сети через /api/health (navigator.onLine врёт при Wi-Fi без интернета)
+// Жёсткий таймаут: промис не может висеть дольше ms
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve(null), ms)),
+  ]);
+}
+
+// Реальная проверка сети
 export async function checkOnline() {
-  if (!navigator.onLine) return false;
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2500);
-    const res = await fetch(`${API_URL}/health`, {
-      method: 'GET',
-      signal: controller.signal,
-      cache: 'no-store',
-    });
-    clearTimeout(timeout);
-    return res.ok;
-  } catch {
-    return false;
+  // В APK — нативная проверка (надёжнее, чем navigator.onLine в WebView)
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const status = await withTimeout(Network.getStatus(), 1500);
+      if (status && status.connected === false) return false;
+      // Сеть есть по мнению системы — подтверждаем пингом
+      const ping = await withTimeout(
+        fetch(`${API_URL}/health`, { method: 'GET', cache: 'no-store' })
+          .then(r => r.ok)
+          .catch(() => false),
+        3000
+      );
+      return ping === true;
+    } catch {
+      return false;
+    }
   }
+
+  // Браузер
+  if (!navigator.onLine) return false;
+  const ping = await withTimeout(
+    fetch(`${API_URL}/health`, { method: 'GET', cache: 'no-store' })
+      .then(r => r.ok)
+      .catch(() => false),
+    3000
+  );
+  return ping === true;
 }
 
 // React-хук: следит за состоянием сети

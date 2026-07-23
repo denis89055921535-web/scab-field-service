@@ -1,5 +1,7 @@
 import { checkOnline } from '@/lib/network';
 import { outboxGet, outboxUpdate, outboxRemove } from '@/lib/offlineDb';
+import { takeAndSavePhoto, uploadLocalPhotos } from '@/lib/photoService';
+import SmartPhoto from '@/components/common/SmartPhoto';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -50,6 +52,7 @@ const EMPTY_FORM = {
 };
 
 export default function TripForm() {
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const tripId = window.location.pathname.includes('/trips/')
@@ -93,6 +96,7 @@ export default function TripForm() {
   });
 
   useEffect(() => {
+    if (!isNew) return; // для существующего отчёта данные грузятся из него, не затираем
     base44.auth.me().then(user => {
       if (user && !form.employee_name) {
         const initialEmployees = [{ name: user.full_name || '', position: '' }];
@@ -129,6 +133,7 @@ export default function TripForm() {
   }, [existingTrip]);
 
   const saveMutation = useMutation({
+    networkMode: 'always',
     mutationFn: async (data) => {
       // Если это локальный отчёт (лежит в outbox) — сохраняем обратно туда
       if (form._local && form._localId) {
@@ -198,12 +203,16 @@ export default function TripForm() {
     });
   };
 
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm(f => ({ ...f, photos: [...f.photos, file_url] }));
-    toast.success('Фото загружено');
+  const handlePhotoUpload = async () => {
+    try {
+      const result = await takeAndSavePhoto();
+      setForm(f => ({ ...f, photos: [...f.photos, result.url] }));
+      toast.success(result.local ? 'Фото сохранено на устройстве' : 'Фото загружено');
+    } catch (err) {
+      if (err?.message && !err.message.includes('не выбран') && !err.message.includes('cancelled')) {
+        toast.error('Ошибка фото: ' + err.message);
+      }
+    }
   };
 
   const removePhoto = (idx) => {
@@ -243,12 +252,15 @@ const handleSubmitAndSend = async () => {
     // Онлайн — сохраняем на сервер и отправляем письмо
     setSending(true);
     try {
-      const data = { ...form, status: 'completed', email_sent: true };
+      let data = { ...form, status: 'completed', email_sent: true };
       // Убираем служебные поля офлайна перед отправкой
       delete data._local;
       delete data._localId;
       delete data._offline;
       delete data._syncStatus;
+      // Загружаем локальные фото на сервер и подменяем ссылки
+      toast('Загрузка фотографий...');
+      data = await uploadLocalPhotos(data);
       if (isNew || form._local) {
         // Новый или локальный (его ещё нет на сервере) — создаём
         await base44.entities.TripLog.create(data);
@@ -515,7 +527,7 @@ const handleSubmitAndSend = async () => {
           <div className="flex gap-2 flex-wrap">
             {form.photos.map((url, i) => (
               <div key={i} className="relative w-16 h-16">
-                <img src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
+                <SmartPhoto src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
                 {!isReadOnly && (
                   <button type="button" onClick={() => removePhoto(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
                     <X className="w-2.5 h-2.5" />
@@ -524,10 +536,13 @@ const handleSubmitAndSend = async () => {
               </div>
             ))}
             {!isReadOnly && (
-              <label className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+              <button
+                type="button"
+                onClick={handlePhotoUpload}
+                className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+              >
                 <Camera className="w-5 h-5 text-muted-foreground" />
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
-              </label>
+              </button>
             )}
           </div>
         </div>

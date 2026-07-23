@@ -3,6 +3,8 @@ import { ChevronDown, ChevronRight, Camera, Loader2, X, CheckCircle2, XCircle, A
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
+import { takeAndSavePhoto } from '@/lib/photoService';
+import SmartPhoto from '@/components/common/SmartPhoto';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -182,45 +184,42 @@ function CountField({ value, onChange, options, hasError }) {
 function PhotoUpload({ photos = [], onAdd, onRemove }) {
   const [uploading, setUploading] = useState(false);
 
-  const handleUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
+  const handleUpload = async () => {
     setUploading(true);
     try {
-      const urls = [];
-      for (const f of files) {
-        const result = await base44.integrations.Core.UploadFile({ file: f });
-        if (!result?.file_url) throw new Error('Сервер не вернул ссылку на файл');
-        urls.push(result.file_url);
-      }
-      onAdd(urls);
-      toast.success('Фото загружено');
+      const result = await takeAndSavePhoto();
+      onAdd([result.url]);
+      toast.success(result.local ? 'Фото сохранено на устройстве' : 'Фото загружено');
     } catch (err) {
-      toast.error('Ошибка загрузки фото: ' + (err.message || 'неизвестная ошибка'));
+      if (err?.message && !err.message.includes('не выбран') && !err.message.includes('cancelled')) {
+        toast.error('Ошибка фото: ' + err.message);
+      }
     }
     setUploading(false);
-    e.target.value = '';
   };
 
   return (
     <div className="flex flex-wrap gap-2">
       {photos.map((url, i) => (
         <div key={i} className="relative w-14 h-14">
-          <img src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+          <SmartPhoto src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
           <button type="button" onClick={() => onRemove(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
             <X className="w-2.5 h-2.5" />
           </button>
         </div>
       ))}
-      <label className={cn(
-        'cursor-pointer w-14 h-14 border-2 border-dashed rounded-lg flex items-center justify-center transition-colors',
-        photos.length > 0 ? 'border-primary/50 bg-primary/5' : 'border-border hover:bg-muted'
-      )}>
+      <button
+        type="button"
+        onClick={handleUpload}
+        className={cn(
+          'cursor-pointer w-14 h-14 border-2 border-dashed rounded-lg flex items-center justify-center transition-colors',
+          photos.length > 0 ? 'border-primary/50 bg-primary/5' : 'border-border hover:bg-muted'
+        )}
+      >
         {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
           <Camera className={cn('w-4 h-4', photos.length > 0 ? 'text-primary' : 'text-muted-foreground')} />
         )}
-        <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} />
-      </label>
+      </button>
     </div>
   );
 }
@@ -327,7 +326,7 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                       {readOnly ? (
                         <div className="flex flex-wrap gap-2">
                           {(sectionPhotos[field.key] || []).map((url, i) => (
-                            <img key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+                            <SmartPhoto key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
                           ))}
                           {!(sectionPhotos[field.key]?.length) && <span className="text-xs text-muted-foreground">Нет фото</span>}
                         </div>
@@ -367,7 +366,7 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                 {readOnly ? (
                   <div className="flex flex-wrap gap-2">
                     {(sectionData.sectionPhotos || []).map((url, i) => (
-                      <img key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+                      <SmartPhoto key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
                     ))}
                     {!(sectionData.sectionPhotos?.length) && <span className="text-xs text-muted-foreground">Нет фото</span>}
                   </div>
