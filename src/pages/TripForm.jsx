@@ -1,4 +1,5 @@
 import { checkOnline } from '@/lib/network';
+import { outboxGet, outboxUpdate, outboxRemove } from '@/lib/offlineDb';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -83,6 +84,8 @@ export default function TripForm() {
   const { data: existingTrip } = useQuery({
     queryKey: ['trip', tripId],
     queryFn: async () => {
+      const local = await outboxGet(tripId);
+      if (local) return { ...local.data, _local: true, _localId: local.localId };
       const trips = await base44.entities.TripLog.filter({ id: tripId });
       return trips[0];
     },
@@ -127,6 +130,11 @@ export default function TripForm() {
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
+      // Если это локальный отчёт (лежит в outbox) — сохраняем обратно туда
+      if (form._local && form._localId) {
+        await outboxUpdate(form._localId, { data: { ...data, id: form._localId } });
+        return { ...data, id: form._localId, _local: true, _offline: true };
+      }
       if (isNew) return base44.entities.TripLog.create(data);
       return base44.entities.TripLog.update(tripId, data);
     },
@@ -236,8 +244,16 @@ const handleSubmitAndSend = async () => {
     setSending(true);
     try {
       const data = { ...form, status: 'completed', email_sent: true };
-      if (isNew) {
+      // Убираем служебные поля офлайна перед отправкой
+      delete data._local;
+      delete data._localId;
+      delete data._offline;
+      delete data._syncStatus;
+      if (isNew || form._local) {
+        // Новый или локальный (его ещё нет на сервере) — создаём
         await base44.entities.TripLog.create(data);
+        // Локальный отправлен — убираем из очереди
+        if (form._localId) await outboxRemove(form._localId);
       } else {
         await base44.entities.TripLog.update(tripId, data);
       }

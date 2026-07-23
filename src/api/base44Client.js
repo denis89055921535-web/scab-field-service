@@ -35,18 +35,19 @@ async function request(method, endpoint, data = null) {
 function createEntityClient(endpoint) {
   return {
     list: async (sortOrFilters = {}) => {
+      let result;
       try {
-        const result = await request('GET', endpoint);
-        const data = result?.data ?? result ?? [];
-        // Сохраняем в кеш для офлайн-доступа
-        await cacheSet(`list:${endpoint}`, data);
-        return data;
+        result = await request('GET', endpoint);
       } catch (err) {
-        // Нет сети — отдаём из кеша
+        // Нет сети — отдаём из кеша, если есть
         const cached = await cacheGet(`list:${endpoint}`);
         if (cached) return cached;
         throw err;
       }
+      const data = result?.data ?? result ?? [];
+      // Кеширование не должно ломать основную работу
+      try { await cacheSet(`list:${endpoint}`, data); } catch (e) { /* игнор */ }
+      return data;
     },
     filter: async (filters = {}) => {
       // Если есть id — используем GET /:id

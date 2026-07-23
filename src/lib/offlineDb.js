@@ -50,6 +50,11 @@ export async function outboxAdd(record) {
   return record;
 }
 
+export async function outboxGet(localId) {
+  const db = await getDB();
+  return db.get('outbox', localId);
+}
+
 export async function outboxGetAll() {
   const db = await getDB();
   return db.getAll('outbox');
