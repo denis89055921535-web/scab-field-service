@@ -147,7 +147,7 @@ export default function TripForm() {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
       const offline = saved?._offline;
       toast.success(offline ? 'Сохранено на устройстве (не отправлено)' : (isNew ? 'Выезд создан' : 'Выезд обновлён'));
-      if (isNew) {
+      if (isNew || saved?._offline) {
         navigate('/trips');
       } else if (saved) {
         setForm(f => ({ ...f, ...saved }));
