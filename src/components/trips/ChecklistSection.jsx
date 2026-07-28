@@ -97,8 +97,8 @@ export const CHECKLIST_SECTIONS = [
     key: 'marking',
     title: 'Проверка меток в трубах на столе и на мостках',
     fields: [
-      { key: 'tubes_bridges', label: 'Проверка меток в отдельных трубах на раскатных мостках (выгрузка с ТСД)', type: 'yesno', hasPhotoComment: true },
-      { key: 'candles_table', label: 'Проверка меток в составе свечей на роторном столе (выгрузка с ТСД)', type: 'yesno', hasPhotoComment: true },
+      { key: 'tubes_bridges', label: 'Проверка меток в отдельных трубах на раскатных мостках (выгрузка с ТСД)', type: 'yesno', hasPhotoComment: true, hasFile: true },
+      { key: 'candles_table', label: 'Проверка меток в составе свечей на роторном столе (выгрузка с ТСД)', type: 'yesno', hasPhotoComment: true, hasFile: true },
     ],
   },
   {
@@ -343,6 +343,18 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                     readOnly={readOnly}
                     label={field.fileLabel || 'Прикрепить файл (Excel/PDF)'}
                   />
+                )}
+                {field.hasFile && (
+                  <div className="mt-2">
+                    <Label className="text-xs mb-1 block text-muted-foreground">Файл (Excel/PDF)</Label>
+                    <FileAttach
+                      attachment={sectionFiles[field.key]}
+                      onAttach={a => setFile(field.key, a)}
+                      onRemove={() => removeFile(field.key)}
+                      readOnly={readOnly}
+                      label={field.fileLabel || 'Прикрепить файл (Excel/PDF)'}
+                    />
+                  </div>
                 )}
 
                 {((isNo && field.type === 'yesno') || (field.type === 'count' && answers[field.key])) && field.hasPhotoComment && (

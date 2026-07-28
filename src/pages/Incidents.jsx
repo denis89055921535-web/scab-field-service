@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SmartPhoto from '@/components/common/SmartPhoto';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -239,7 +240,7 @@ export default function Incidents() {
                 <div className="flex flex-wrap gap-2 mt-1">
                   {form.photos.map((url, idx) => (
                     <div key={idx} className="relative w-16 h-16">
-                      <img src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
+                      <SmartPhoto src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
                       {!isReadOnly && (
                         <button onClick={() => removePhoto(idx)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
                           <X className="w-2.5 h-2.5" />

@@ -221,7 +221,14 @@ export default function TripForm() {
   };
 
   const handleSave = () => {
-    saveMutation.mutate(form);
+    saveMutation.mutate(form, {
+      onSuccess: (saved) => {
+        queryClient.invalidateQueries({ queryKey: ['trips'] });
+        const offline = saved?._offline;
+        toast.success(offline ? 'Сохранено на устройстве (не отправлено)' : 'Изменения сохранены');
+        navigate('/trips');
+      },
+    });
   };
 
   const handleSubmit = () => {
