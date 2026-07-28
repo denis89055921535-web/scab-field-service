@@ -1,6 +1,7 @@
 import { checkOnline } from '@/lib/network';
 import { outboxGet, outboxUpdate, outboxRemove } from '@/lib/offlineDb';
 import { takeAndSavePhoto, uploadLocalPhotos } from '@/lib/photoService';
+import { uploadLocalFiles } from '@/lib/fileService';
 import SmartPhoto from '@/components/common/SmartPhoto';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -261,6 +262,7 @@ const handleSubmitAndSend = async () => {
       // Загружаем локальные фото на сервер и подменяем ссылки
       toast('Загрузка фотографий...');
       data = await uploadLocalPhotos(data);
+      data = await uploadLocalFiles(data);
       if (isNew || form._local) {
         // Новый или локальный (его ещё нет на сервере) — создаём
         await base44.entities.TripLog.create(data);

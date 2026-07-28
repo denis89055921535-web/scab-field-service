@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
 import { takeAndSavePhoto } from '@/lib/photoService';
 import SmartPhoto from '@/components/common/SmartPhoto';
+import FileAttach from '@/components/common/FileAttach';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -92,6 +93,21 @@ export const CHECKLIST_SECTIONS = [
     ],
   },
 
+  {
+    key: 'marking',
+    title: 'Проверка меток в трубах на столе и на мостках',
+    fields: [
+      { key: 'tubes_bridges', label: 'Проверка меток в отдельных трубах на раскатных мостках (выгрузка с ТСД)', type: 'yesno', hasPhotoComment: true },
+      { key: 'candles_table', label: 'Проверка меток в составе свечей на роторном столе (выгрузка с ТСД)', type: 'yesno', hasPhotoComment: true },
+    ],
+  },
+  {
+    key: 'rechipping',
+    title: 'Перечиповка меток',
+    fields: [
+      { key: 'rechip_registry', label: 'Реестр перечиповки', type: 'file', fileLabel: 'Прикрепить реестр (Excel/PDF)' },
+    ],
+  },
 ];
 
 function getSectionStatus(section, sectionData) {
@@ -216,6 +232,15 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
   const answers = sectionData.answers || {};
   const comments = sectionData.comments || {};
   const sectionPhotos = sectionData.photos || {};
+  const sectionFiles = sectionData.files || {};
+  const setFile = (fieldKey, attachment) => {
+    onChange({ ...sectionData, files: { ...sectionFiles, [fieldKey]: attachment } });
+  };
+  const removeFile = (fieldKey) => {
+    const updated = { ...sectionFiles };
+    delete updated[fieldKey];
+    onChange({ ...sectionData, files: updated });
+  };
 
   const status = getSectionStatus(section, sectionData);
   const statusColor = status === 'complete' ? 'bg-emerald-400' : status === 'error' ? 'bg-red-400' : 'bg-muted-foreground/30';
@@ -309,6 +334,15 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                       />
                     )}
                   </div>
+                )}
+                {field.type === 'file' && (
+                  <FileAttach
+                    attachment={sectionFiles[field.key]}
+                    onAttach={a => setFile(field.key, a)}
+                    onRemove={() => removeFile(field.key)}
+                    readOnly={readOnly}
+                    label={field.fileLabel || 'Прикрепить файл (Excel/PDF)'}
+                  />
                 )}
 
                 {((isNo && field.type === 'yesno') || (field.type === 'count' && answers[field.key])) && field.hasPhotoComment && (

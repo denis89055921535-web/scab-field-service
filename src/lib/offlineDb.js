@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'scab-offline';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 // Инициализация базы с тремя хранилищами
 let dbPromise = null;
@@ -22,6 +22,10 @@ function getDB() {
         // Фото как Blob
         if (!db.objectStoreNames.contains('photos')) {
           db.createObjectStore('photos', { keyPath: 'photoId' });
+        }
+        // Хранилище файлов (Excel/PDF) для офлайн
+        if (!db.objectStoreNames.contains('files')) {
+          db.createObjectStore('files', { keyPath: 'fileId' });
         }
       },
     });
@@ -98,6 +102,25 @@ export async function photoGet(photoId) {
 export async function photoRemove(photoId) {
   const db = await getDB();
   await db.delete('photos', photoId);
+}
+
+// ===== ФАЙЛЫ (Excel/PDF) =====
+
+export async function fileSave(fileId, blob, meta = {}) {
+  const db = await getDB();
+  await db.put('files', { fileId, blob, meta, createdAt: Date.now() });
+  return fileId;
+}
+
+export async function fileGet(fileId) {
+  const db = await getDB();
+  const rec = await db.get('files', fileId);
+  return rec || null;
+}
+
+export async function fileRemove(fileId) {
+  const db = await getDB();
+  await db.delete('files', fileId);
 }
 
 // ===== СЛУЖЕБНОЕ =====
