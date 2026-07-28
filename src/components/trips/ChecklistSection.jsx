@@ -13,6 +13,7 @@ export const CHECKLIST_SECTIONS = [
     key: 'preparation',
     title: 'Подготовка к выезду',
     fields: [
+      { key: 'trunk_photo', label: 'Фото багажника', type: 'photo' },
       { key: 'zip', label: 'Наличие ЗИП', type: 'yesno' },
       { key: 'antenna', label: 'Корпусная антенна', type: 'yesno' },
       { key: 'reader_cable', label: 'Ридер. Кабель Type-C', type: 'yesno' },
@@ -29,12 +30,26 @@ export const CHECKLIST_SECTIONS = [
     ],
   },
   {
+    key: 'equipment',
+    title: 'Проверка оборудования',
+    fields: [
+      { key: 'availability', label: 'Проверка доступности оборудования', type: 'yesno', hasPhotoComment: true },
+      { key: 'internet', label: 'Проверка доступности сети Интернет', type: 'yesno', hasPhotoComment: true },
+      { key: 'mpc', label: 'Проверка работы служб на МРС / миниПК', type: 'yesno', hasPhotoComment: true },
+      { key: 'tsd', label: 'Проверка ТСД', type: 'yesno', hasPhotoComment: true },
+    ],
+  },
+  {
     key: 'antennas',
     title: 'Антенны',
     fields: [
-      { key: 'count', label: 'Работает антенн', type: 'count', options: ['1','2','3','4'] },
-      { key: 'cleaning', label: 'Проведена очистка антенн', type: 'yesno' },
-      { key: 'structure', label: 'Контроль состояния конструкции', type: 'yesno' },
+      { key: 'visual', label: 'Визуальный осмотр', type: 'yesno', hasPhotoComment: true },
+      { key: 'rfid_dirty', label: 'Проверка тестовой метки на грязные антенны — количество работающих антенн', type: 'count', options: ['1','2','3','4'], hasPhotoComment: true },
+      { key: 'cleaning', label: 'Проведена очистка антенн', type: 'yesno', hasPhotoComment: true },
+      { key: 'rfid_clean', label: 'Проверка тестовой метки на чистые антенны — количество работающих антенн', type: 'count', options: ['1','2','3','4'], hasPhotoComment: true },
+      { key: 'position', label: 'Контроль положения антенн', type: 'yesno', hasPhotoComment: true },
+      { key: 'structure', label: 'Контроль состояния конструкций', type: 'yesno', hasPhotoComment: true },
+      { key: 'repair', label: 'Ремонт МС / Замена антенн', type: 'yesno', hasPhotoComment: true },
     ],
   },
   {
@@ -92,18 +107,6 @@ export const CHECKLIST_SECTIONS = [
     title: 'Антенно-фидерный тракт',
     fields: [
       { key: 'check', label: 'Проверка антенно-фидерного тракта', type: 'yesno' },
-    ],
-  },
-  {
-    key: 'equipment',
-    title: 'Проверка оборудования',
-    fields: [
-      { key: 'availability', label: 'Проверка доступности оборудования', type: 'yesno', hasPhotoComment: true },
-      { key: 'internet', label: 'Проверка доступности сети Интернет', type: 'yesno', hasPhotoComment: true },
-      { key: 'mpc', label: 'Проверка работы служб на МРС / миниПК', type: 'yesno', hasPhotoComment: true },
-      { key: 'rfid_dirty', label: 'Проверка тестовой метки на грязные антенны', type: 'yesno', hasPhotoComment: true },
-      { key: 'rfid_clean', label: 'Проверка тестовой метки на чистые антенны', type: 'yesno', hasPhotoComment: true },
-      { key: 'tsd', label: 'Проверка ТСД', type: 'yesno', hasPhotoComment: true },
     ],
   },
 ];
@@ -306,8 +309,26 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                     />
                   </div>
                 )}
+                {field.type === 'photo' && (
+                  <div>
+                    {readOnly ? (
+                      <div className="flex flex-wrap gap-2">
+                        {(sectionPhotos[field.key] || []).map((url, i) => (
+                          <SmartPhoto key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+                        ))}
+                        {!(sectionPhotos[field.key]?.length) && <span className="text-xs text-muted-foreground">Нет фото</span>}
+                      </div>
+                    ) : (
+                      <PhotoUpload
+                        photos={sectionPhotos[field.key] || []}
+                        onAdd={urls => addPhotos(field.key, urls)}
+                        onRemove={idx => removePhoto(field.key, idx)}
+                      />
+                    )}
+                  </div>
+                )}
 
-                {isNo && field.hasPhotoComment && (
+                {((isNo && field.type === 'yesno') || (field.type === 'count' && answers[field.key])) && field.hasPhotoComment && (
                   <div className="ml-0 pl-3 border-l-2 border-red-200 space-y-3">
                     <div>
                       <Label className="text-xs text-muted-foreground">Комментарий</Label>
