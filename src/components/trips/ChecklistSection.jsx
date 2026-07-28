@@ -53,48 +53,6 @@ export const CHECKLIST_SECTIONS = [
     ],
   },
   {
-    key: 'cabinets',
-    title: 'Шкаф модули',
-    fields: [
-      { key: 'power', label: 'Подключение к электросети', type: 'yesno' },
-      { key: 'damage', label: 'Отсутствие повреждений', type: 'yesno' },
-      { key: 'comm_lines', label: 'Проверка коммуникационных линий', type: 'yesno' },
-      { key: 'external', label: 'Проверка внешних подключений', type: 'yesno' },
-      { key: 'indicators', label: 'Проверка на наличие световой индикации (Внешняя/Внутренняя)', type: 'yesno' },
-      { key: 'quick_connect', label: 'Контакт быстросъемных соединений', type: 'yesno' },
-      { key: 'silica_gel', label: 'Проверка состояния силикагеля', type: 'yesno' },
-    ],
-  },
-  {
-    key: 'cabinet_reg',
-    title: 'Шкаф модуля регистрации',
-    fields: [
-      { key: 'rfid_config', label: 'Проверка поступления конфигурации на RFID-считыватель', type: 'yesno' },
-    ],
-  },
-  {
-    key: 'cables',
-    title: 'Кабельная сборка',
-    fields: [
-      { key: 'visual', label: 'Визуальный осмотр', type: 'yesno' },
-      { key: 'no_damage', label: 'Отсутствие повреждений', type: 'yesno' },
-      { key: 'corrugated', label: 'Проверка состояния гофрированного кожуха', type: 'yesno' },
-      { key: 'grounding', label: 'Проверка заземления каждого шкафа модуля', type: 'yesno' },
-      { key: 'connections', label: 'Проверка соединений', type: 'yesno' },
-      { key: 'connectors', label: 'Проверка разъемов', type: 'yesno' },
-      { key: 'fasteners', label: 'Проверка крепежей', type: 'yesno' },
-      { key: 'insulation', label: 'Проверка изоляции кабеля', type: 'yesno' },
-      { key: 'cleaning', label: 'Очистка кабеля', type: 'yesno' },
-    ],
-  },
-  {
-    key: 'cameras',
-    title: 'Камеры, радиомост и 4G/LTE роутер',
-    fields: [
-      { key: 'check', label: 'Проверка и осмотр камер, антенн радиомоста и 4G/LTE роутера с антенной', type: 'yesno' },
-    ],
-  },
-  {
     key: 'rfid',
     title: 'RFID-считыватель / сканер',
     fields: [
@@ -106,9 +64,34 @@ export const CHECKLIST_SECTIONS = [
     key: 'antenna_feeder',
     title: 'Антенно-фидерный тракт',
     fields: [
-      { key: 'check', label: 'Проверка антенно-фидерного тракта', type: 'yesno' },
+      { key: 'check', label: 'Проверка антенно-фидерного тракта', type: 'yesno', hasPhotoComment: true },
+      { key: 'maintenance', label: 'Обслуживание / восстановление работы', type: 'yesno', hasPhotoComment: true },
     ],
   },
+  {
+    key: 'cabinets',
+    title: 'Шкаф модули',
+    fields: [
+      { key: 'inspection', label: 'Осмотр шкафов', type: 'yesno', hasPhotoComment: true },
+      { key: 'grounding', label: 'Проверка заземления', type: 'yesno', hasPhotoComment: true },
+      { key: 'power', label: 'Проверка питания', type: 'yesno', hasPhotoComment: true },
+      { key: 'comm_lines', label: 'Проверка коммуникационных линий', type: 'yesno', hasPhotoComment: true },
+      { key: 'external', label: 'Проверка внешних подключений', type: 'yesno', hasPhotoComment: true },
+      { key: 'silica_gel', label: 'Проверка состояния силикагеля', type: 'yesno', hasPhotoComment: true },
+    ],
+  },
+  {
+    key: 'cameras',
+    title: 'Камеры, радиомост и 4G/LTE роутер',
+    fields: [
+      { key: 'clean', label: 'Проверить чистоту камер и антенн', type: 'yesno', hasPhotoComment: true },
+      { key: 'mounts', label: 'Осмотреть крепления камер и антенн', type: 'yesno', hasPhotoComment: true },
+      { key: 'surroundings', label: 'Осмотреть окружающее пространство', type: 'yesno', hasPhotoComment: true },
+      { key: 'after_clean', label: 'Проверить работоспособность камер и антенн после очистки', type: 'yesno', hasPhotoComment: true },
+      { key: 'connectors', label: 'Проверка разъемов подключения', type: 'yesno', hasPhotoComment: true },
+    ],
+  },
+
 ];
 
 function getSectionStatus(section, sectionData) {
