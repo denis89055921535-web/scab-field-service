@@ -19,6 +19,7 @@ const assetTypes = {
   reader_module: 'Модуль считывания',
   cabinet: 'Шкаф',
   zip_kit: 'Комплект ЗИП',
+  tsd: 'ТСД',
   other: 'Прочее',
 };
 

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, ChevronRight, Pencil, Download } from 'lucide-react';
+import { Package, ChevronRight, Pencil, Download, Boxes, ScanLine, Server, Wrench, ScanBarcode } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/common/PageHeader';
@@ -16,6 +16,7 @@ const assetTypes = {
   reader_module: 'Модуль считывания',
   cabinet: 'Шкаф',
   zip_kit: 'Комплект ЗИП',
+  tsd: 'ТСД',
   other: 'Прочее',
 };
 
@@ -127,16 +128,20 @@ export default function Warehouse() {
       />
 
       <div className="px-4 pt-4 space-y-4">
-        {/* Статистика */}
+        {/* Локации — кликабельные карточки */}
         <div className="grid grid-cols-2 gap-3">
           {[
-            { label: 'На складе', value: stats.warehouse, color: 'text-blue-600' },
-            { label: 'В бригадах', value: stats.crew, color: 'text-purple-600' },
-            { label: 'В ремонте', value: stats.repair, color: 'text-orange-500' },
-            { label: 'Всего', value: stats.total, color: 'text-foreground' },
-          ].map(({ label, value, color }) => (
-            <Card key={label} className="p-3 flex items-center gap-3">
-              <Package className={`w-5 h-5 ${color}`} />
+            { key: 'warehouse', label: 'На складе', value: stats.warehouse, color: 'text-blue-600' },
+            { key: 'crew', label: 'В бригадах', value: stats.crew, color: 'text-purple-600' },
+            { key: 'repair', label: 'В ремонте', value: stats.repair, color: 'text-orange-500' },
+            { key: 'all', label: 'Всего', value: stats.total, color: 'text-foreground' },
+          ].map(({ key, label, value, color }) => (
+            <Card
+              key={label}
+              onClick={() => setFilterLocation(key === filterLocation ? 'all' : key)}
+              className={`p-3 flex items-center gap-3 cursor-pointer transition-all active:opacity-70 ` + (filterLocation === key && key !== 'all' ? 'ring-2 ring-primary' : '')}
+            >
+              <Package className={`w-5 h-5 ` + color} />
               <div>
                 <div className="text-lg font-bold">{value}</div>
                 <div className="text-xs text-muted-foreground">{label}</div>
@@ -144,31 +149,30 @@ export default function Warehouse() {
             </Card>
           ))}
         </div>
-
-        {/* Фильтры */}
-        <div className="flex gap-2">
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="flex-1"><SelectValue placeholder="Тип" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все типы</SelectItem>
-              {Object.entries(assetTypes).map(([k, v]) => (
-                <SelectItem key={k} value={k}>{v}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={filterLocation} onValueChange={setFilterLocation}>
-            <SelectTrigger className="flex-1"><SelectValue placeholder="Место" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все места</SelectItem>
-              {Object.entries(locationConfig).map(([k, { label }]) => (
-                <SelectItem key={k} value={k}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Типы — кликабельные плитки */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { key: 'bi_kit', label: 'Комплект БИ', Icon: Boxes },
+            { key: 'reader_module', label: 'Модуль считывания', Icon: ScanLine },
+            { key: 'cabinet', label: 'Шкаф', Icon: Server },
+            { key: 'zip_kit', label: 'Комплект ЗИП', Icon: Wrench },
+            { key: 'tsd', label: 'ТСД', Icon: ScanBarcode },
+            { key: 'other', label: 'Прочее', Icon: Package },
+          ].map(({ key, label, Icon }) => (
+            <Card
+              key={key}
+              onClick={() => setFilterType(key === filterType ? 'all' : key)}
+              className={`p-3 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all active:opacity-70 text-center min-h-[84px] ` + (filterType === key ? 'ring-2 ring-primary bg-primary/5' : 'hover:border-primary')}
+            >
+              <Icon className={`w-6 h-6 ` + (filterType === key ? 'text-primary' : 'text-muted-foreground')} />
+              <div className="text-xs font-medium leading-tight">{label}</div>
+            </Card>
+          ))}
         </div>
-
         {/* Список */}
-        {isLoading ? (
+        {(filterType === 'all' && filterLocation === 'all') ? (
+          <div className="text-center text-muted-foreground py-12">Выберите категорию, чтобы увидеть оборудование</div>
+        ) : isLoading ? (
           <div className="text-center text-muted-foreground py-12">Загрузка...</div>
         ) : filtered.length === 0 ? (
           <div className="text-center text-muted-foreground py-12">Активы не найдены</div>

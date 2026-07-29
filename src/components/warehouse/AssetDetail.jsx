@@ -22,8 +22,10 @@ const locationConfig = {
 
 function formatDate(d) {
   if (!d) return '—';
-  const [y, m, day] = d.split('-');
-  return `${day}.${m}.${y}`;
+  const datePart = String(d).split('T')[0];
+  const [y, m, day] = datePart.split('-');
+  if (!y || !m || !day) return String(d);
+  return day + '.' + m + '.' + y;
 }
 
 function InfoRow({ icon: Icon, label, value }) {

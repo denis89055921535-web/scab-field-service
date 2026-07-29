@@ -32,6 +32,7 @@ export const CHECKLIST_SECTIONS = [
   },
   {
     key: 'equipment',
+    hasSectionPhoto: true,
     title: 'Проверка оборудования',
     fields: [
       { key: 'availability', label: 'Проверка доступности оборудования', type: 'yesno', hasPhotoComment: true },
@@ -42,6 +43,7 @@ export const CHECKLIST_SECTIONS = [
   },
   {
     key: 'antennas',
+    hasSectionPhoto: true,
     title: 'Антенны',
     fields: [
       { key: 'visual', label: 'Визуальный осмотр', type: 'yesno', hasPhotoComment: true },
@@ -55,6 +57,7 @@ export const CHECKLIST_SECTIONS = [
   },
   {
     key: 'rfid',
+    hasSectionPhoto: true,
     title: 'RFID-считыватель / сканер',
     fields: [
       { key: 'indicators', label: 'Проверить индикаторы', type: 'yesno' },
@@ -63,6 +66,7 @@ export const CHECKLIST_SECTIONS = [
   },
   {
     key: 'antenna_feeder',
+    hasSectionPhoto: true,
     title: 'Антенно-фидерный тракт',
     fields: [
       { key: 'check', label: 'Проверка антенно-фидерного тракта', type: 'yesno', hasPhotoComment: true },
@@ -71,6 +75,7 @@ export const CHECKLIST_SECTIONS = [
   },
   {
     key: 'cabinets',
+    hasSectionPhoto: true,
     title: 'Шкаф модули',
     fields: [
       { key: 'inspection', label: 'Осмотр шкафов', type: 'yesno', hasPhotoComment: true },
@@ -83,6 +88,7 @@ export const CHECKLIST_SECTIONS = [
   },
   {
     key: 'cameras',
+    hasSectionPhoto: true,
     title: 'Камеры, радиомост и 4G/LTE роутер',
     fields: [
       { key: 'clean', label: 'Проверить чистоту камер и антенн', type: 'yesno', hasPhotoComment: true },
@@ -409,7 +415,7 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
           })}
 
           {/* Section-level photo & comment for non-per-field sections */}
-          {!hasPerFieldPhotoComment && (
+          {section.hasSectionPhoto && (
             <>
               <div>
                 <Label className="text-xs text-muted-foreground mb-1 block">Фото</Label>
