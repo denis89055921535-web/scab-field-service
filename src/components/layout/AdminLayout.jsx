@@ -22,7 +22,7 @@ export default function AdminLayout() {
             <Shield className="w-5 h-5" />
             <span className="font-semibold text-sm">Админ-панель SCAB</span>
           </div>
-          <Link to="/" className="flex items-center gap-1 text-xs opacity-80 hover:opacity-100 transition-opacity">
+          <Link to="/" className="flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 active:bg-white/30 transition-colors">
             <ChevronLeft className="w-4 h-4" />
             В приложение
           </Link>
