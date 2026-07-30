@@ -110,7 +110,17 @@ export default function Warehouse() {
           }
         />
         <div className="px-4 pt-4">
-          <AssetDetail asset={selectedAsset} />
+          <AssetDetail
+            asset={selectedAsset}
+            onUpdate={async (fields) => {
+              try {
+                const updated = await base44.entities.Asset.update(selectedAsset.id, { ...selectedAsset, ...fields });
+                setSelectedAsset(prev => ({ ...prev, ...fields }));
+              } catch (err) {
+                console.error('Ошибка сохранения документов:', err);
+              }
+            }}
+          />
         </div>
       </div>
     );

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import AssetDocuments from './AssetDocuments';
 import { Package, MapPin, Hash, Wrench, Calendar, Building2, FileText, Users } from 'lucide-react';
 
 const assetTypes = {
@@ -39,8 +41,12 @@ function InfoRow({ icon: Icon, label, value }) {
   );
 }
 
-export default function AssetDetail({ asset }) {
+export default function AssetDetail({ asset, onUpdate }) {
+  const [passports, setPassports] = useState(asset.passport_files || []);
+  const [inspections, setInspections] = useState(asset.inspection_files || []);
   const cond = conditionConfig[asset.condition];
+  const savePassports = (docs) => { setPassports(docs); onUpdate && onUpdate({ passport_files: docs }); };
+  const saveInspections = (docs) => { setInspections(docs); onUpdate && onUpdate({ inspection_files: docs }); };
   const loc = locationConfig[asset.location_type];
 
   return (
@@ -68,11 +74,23 @@ export default function AssetDetail({ asset }) {
           <InfoRow icon={Building2} label="Производитель" value={asset.manufacturer} />
           <InfoRow icon={Calendar} label="Дата ввода в работу" value={formatDate(asset.commissioned_date)} />
           <InfoRow icon={MapPin} label="Бригада" value={asset.location_type === 'crew' && asset.crew_number ? `Бригада ${asset.crew_number}` : null} />
-          <InfoRow icon={Wrench} label="Последняя инспекция" value={formatDate(asset.last_inspection_date)} />
           <InfoRow icon={Users} label="Партнёр" value={asset.partner} />
           <InfoRow icon={FileText} label="Примечания" value={asset.notes} />
         </CardContent>
       </Card>
+      <AssetDocuments
+        title="Паспорт оборудования"
+        documents={passports}
+        onChange={savePassports}
+        readOnly={!onUpdate}
+      />
+      <AssetDocuments
+        title="Инспекции"
+        documents={inspections}
+        onChange={saveInspections}
+        withDate={true}
+        readOnly={!onUpdate}
+      />
     </div>
   );
 }
