@@ -13,10 +13,10 @@ export default function PageHeader({ title, backTo, onBack, actions }) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 flex-shrink-0"
+              className="h-10 w-10 flex-shrink-0 rounded-full hover:bg-muted active:bg-muted/70"
               onClick={() => onBack ? onBack() : navigate(backTo)}
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-6 h-6" />
             </Button>
           )}
           <h1 className="text-lg font-bold truncate">{title}</h1>
