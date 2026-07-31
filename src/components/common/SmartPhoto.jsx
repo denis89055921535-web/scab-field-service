@@ -42,7 +42,7 @@ export default function SmartPhoto({ src, className = '', alt = '', onClick, zoo
     }
   }, [zoomed]);
 
-  if (failed && fallback) {
+  if (failed && fallback && !zoomed) {
     return fallback;
   }
   if (!displayUrl) {
@@ -61,7 +61,7 @@ export default function SmartPhoto({ src, className = '', alt = '', onClick, zoo
         className={`${className} ${(!onClick && zoomable) ? 'cursor-pointer' : ''}`}
         alt={alt}
         onClick={handleClick}
-        onError={() => setFailed(true)}
+        onError={() => { if (!zoomed) setFailed(true); }}
       />
       {zoomed && (
         <div
