@@ -6,11 +6,13 @@ import { isLocalPhoto, getPhotoId } from '@/lib/photoService';
 
 // Показывает фото: серверное (по URL) или локальное (Blob из IndexedDB)
 // По клику открывает фото на весь экран (лайтбокс)
-export default function SmartPhoto({ src, className = '', alt = '', onClick, zoomable = true }) {
+export default function SmartPhoto({ src, className = '', alt = '', onClick, zoomable = true, fallback = null }) {
   const [displayUrl, setDisplayUrl] = useState('');
   const [zoomed, setZoomed] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    setFailed(false);
     let objectUrl = null;
     let cancelled = false;
     const load = async () => {
@@ -40,6 +42,9 @@ export default function SmartPhoto({ src, className = '', alt = '', onClick, zoo
     }
   }, [zoomed]);
 
+  if (failed && fallback) {
+    return fallback;
+  }
   if (!displayUrl) {
     return <div className={`bg-muted animate-pulse ${className}`} />;
   }
@@ -56,6 +61,7 @@ export default function SmartPhoto({ src, className = '', alt = '', onClick, zoo
         className={`${className} ${(!onClick && zoomable) ? 'cursor-pointer' : ''}`}
         alt={alt}
         onClick={handleClick}
+        onError={() => setFailed(true)}
       />
       {zoomed && (
         <div

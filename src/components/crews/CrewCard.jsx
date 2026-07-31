@@ -19,6 +19,11 @@ export default function CrewCard({ crew, onClick }) {
             src={crew.photo_url}
             alt={`БУ ${crew.crew_number}`}
             className="w-20 h-20 rounded-lg object-cover bg-muted flex-shrink-0"
+            fallback={
+              <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl font-bold text-muted-foreground">{crew.crew_number}</span>
+              </div>
+            }
           />
         ) : (
           <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
