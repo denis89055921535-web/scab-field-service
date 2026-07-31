@@ -289,6 +289,17 @@ const handleSubmitAndSend = async () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Удалить отчёт?')) return;
+    try {
+      if (form._localId) await outboxRemove(form._localId);
+      queryClient.invalidateQueries({ queryKey: ['localTrips'] });
+      toast.success('Отчёт удалён');
+      navigate('/trips');
+    } catch (err) {
+      toast.error('Ошибка удаления: ' + (err.message || ''));
+    }
+  };
   const handleExportExcel = () => exportToExcel(form);
 
   const handleGetGeo = () => {
@@ -627,6 +638,16 @@ const handleSubmitAndSend = async () => {
           </Button>
         )}
 
+        {form._local && !form.email_sent && (
+          <Button
+            variant="outline"
+            className="h-11 px-3 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+            onClick={handleDelete}
+            disabled={saveMutation.isPending || sending}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        )}
         {!isReadOnly && (
           <Button
             className="flex-1 h-11"
