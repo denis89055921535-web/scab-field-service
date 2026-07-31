@@ -50,6 +50,21 @@ function createEntityClient(endpoint) {
       return data;
     },
     filter: async (filters = {}) => {
+      const online = await checkOnline();
+      // Офлайн — ищем в кеше списка
+      if (!online) {
+        try {
+          const cached = await cacheGet(`list:${endpoint}`);
+          if (cached && Array.isArray(cached)) {
+            let res = cached;
+            for (const [k, v] of Object.entries(filters)) {
+              res = res.filter(item => String(item[k]) === String(v));
+            }
+            return res;
+          }
+        } catch (e) { /* игнор */ }
+        return [];
+      }
       // Если есть id — используем GET /:id
       if (filters.id) {
         const result = await request('GET', `${endpoint}/${filters.id}`);
