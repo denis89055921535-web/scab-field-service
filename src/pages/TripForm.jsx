@@ -676,12 +676,11 @@ const handleSubmitAndSend = async () => {
 
         <Button
           variant="outline"
-          className={isReadOnly ? 'flex-1 h-11' : 'flex-1 h-11'}
+          className="h-11 px-3"
           onClick={handleExportExcel}
           title="Скачать Excel"
         >
           <FileDown className="w-4 h-4" />
-          Excel
         </Button>
       </div>
     </div>
