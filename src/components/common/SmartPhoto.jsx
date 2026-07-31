@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { photoGet } from '@/lib/offlineDb';
 import { resolvePhotoUrl } from '@/api/base44Client';
@@ -63,7 +64,7 @@ export default function SmartPhoto({ src, className = '', alt = '', onClick, zoo
         onClick={handleClick}
         onError={() => { if (!zoomed) setFailed(true); }}
       />
-      {zoomed && (
+      {zoomed && createPortal(
         <div
           className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
           onClick={() => setZoomed(false)}
@@ -82,7 +83,8 @@ export default function SmartPhoto({ src, className = '', alt = '', onClick, zoo
             alt={alt}
             onClick={(e) => e.stopPropagation()}
           />
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -16,6 +16,7 @@ export default function CrewCard({ crew, onClick }) {
       <div className="flex gap-3 p-3">
         {crew.photo_url ? (
           <SmartPhoto
+            zoomable={false}
             src={crew.photo_url}
             alt={`БУ ${crew.crew_number}`}
             className="w-20 h-20 rounded-lg object-cover bg-muted flex-shrink-0"

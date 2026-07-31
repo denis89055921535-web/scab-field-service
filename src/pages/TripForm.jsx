@@ -292,8 +292,13 @@ const handleSubmitAndSend = async () => {
   const handleDelete = async () => {
     if (!window.confirm('Удалить отчёт?')) return;
     try {
-      if (form._localId) await outboxRemove(form._localId);
+      if (form._localId) {
+        await outboxRemove(form._localId);
+      } else if (tripId) {
+        await base44.entities.TripLog.delete(tripId);
+      }
       queryClient.invalidateQueries({ queryKey: ['localTrips'] });
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
       toast.success('Отчёт удалён');
       navigate('/trips');
     } catch (err) {
@@ -638,7 +643,7 @@ const handleSubmitAndSend = async () => {
           </Button>
         )}
 
-        {form._local && !form.email_sent && (
+        {!isNew && !form.email_sent && (
           <Button
             variant="outline"
             className="h-11 px-3 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
