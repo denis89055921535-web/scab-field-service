@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { openDocument } from '@/lib/openDocument';
 import { FileText, Plus, X, Download, Loader2, Calendar } from 'lucide-react';
 import { attachFile, isLocalFile, getFileId } from '@/lib/fileService';
 import { fileGet } from '@/lib/offlineDb';
@@ -36,17 +37,8 @@ export default function AssetDocuments({ title, documents = [], onChange, withDa
     onChange(documents.map((d, i) => i === idx ? { ...d, date: value } : d));
   };
 
-  const handleOpen = async (doc) => {
-    if (isLocalFile(doc.url)) {
-      const rec = await fileGet(getFileId(doc.url));
-      if (rec?.blob) {
-        const u = URL.createObjectURL(rec.blob);
-        window.open(u, '_blank');
-        setTimeout(() => URL.revokeObjectURL(u), 10000);
-      }
-    } else {
-      window.open(resolvePhotoUrl(doc.url), '_blank');
-    }
+  const handleOpen = (doc) => {
+    openDocument(doc.url);
   };
 
   return (
@@ -73,7 +65,11 @@ export default function AssetDocuments({ title, documents = [], onChange, withDa
             <div key={idx} className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
               <FileText className="w-4 h-4 text-primary shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="text-sm truncate" title={doc.name}>{doc.name || 'Документ'}</div>
+                <div
+                  className="text-sm truncate text-primary hover:underline cursor-pointer"
+                  title={doc.name}
+                  onClick={() => handleOpen(doc)}
+                >{doc.name || 'Документ'}</div>
                 {withDate && (
                   readOnly ? (
                     <div className="text-xs text-muted-foreground flex items-center gap-1">

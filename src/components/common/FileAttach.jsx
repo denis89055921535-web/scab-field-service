@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { openDocument } from '@/lib/openDocument';
 import { Paperclip, FileText, X, Download, Loader2 } from 'lucide-react';
 import { attachFile, isLocalFile, getFileId } from '@/lib/fileService';
 import { fileGet } from '@/lib/offlineDb';
@@ -23,18 +24,8 @@ export default function FileAttach({ attachment, onAttach, onRemove, readOnly, l
     setLoading(false);
   };
 
-  const handleOpen = async () => {
-    if (!attachment?.url) return;
-    if (isLocalFile(attachment.url)) {
-      const rec = await fileGet(getFileId(attachment.url));
-      if (rec?.blob) {
-        const url = URL.createObjectURL(rec.blob);
-        window.open(url, '_blank');
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
-      }
-    } else {
-      window.open(resolvePhotoUrl(attachment.url), '_blank');
-    }
+  const handleOpen = () => {
+    openDocument(attachment.url);
   };
 
   if (attachment?.url) {

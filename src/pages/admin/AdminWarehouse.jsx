@@ -44,7 +44,7 @@ const emptyForm = {
 
 export default function AdminWarehouse() {
   const queryClient = useQueryClient();
-  const { partner } = usePartner();
+  const { partner, setPartner, clearPartner, PARTNERS } = usePartner();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
@@ -140,7 +140,18 @@ export default function AdminWarehouse() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Склад — {partner || 'Все компании'}</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold">Склад</h2>
+          <Select value={partner || '__all__'} onValueChange={v => v === '__all__' ? clearPartner() : setPartner(v)}>
+            <SelectTrigger className="w-52"><SelectValue placeholder="Все компании" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">Все компании</SelectItem>
+              {PARTNERS.map(p => (
+                <SelectItem key={p} value={p}>{p}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
           <DialogTrigger asChild>
             <Button size="sm" onClick={() => { setForm({ ...emptyForm, partner: partner || '' }); setEditId(null); }}>

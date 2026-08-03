@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
 const API_URL = 'https://scabpro.com/api';
@@ -14,11 +15,28 @@ export default function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('scab_saved_login') || 'null');
+      if (saved && saved.email) {
+        setEmail(saved.email);
+        if (saved.password) setPassword(saved.password);
+        setRemember(true);
+      }
+    } catch (e) { /* игнор */ }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(''); setLoading(true);
     try {
+      if (remember) {
+        localStorage.setItem('scab_saved_login', JSON.stringify({ email, password }));
+      } else {
+        localStorage.removeItem('scab_saved_login');
+      }
       await login(email, password);
       window.location.href = '/';
     } catch (err) {
@@ -70,10 +88,21 @@ export default function Login() {
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1">Пароль</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                className="w-full bg-slate-700 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="••••••••" required />
+              <div className="relative">
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                  className="w-full bg-slate-700 text-white rounded-lg px-4 py-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="••••••••" required />
+                <button type="button" onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
+            <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer select-none">
+              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
+                className="w-4 h-4 rounded accent-blue-600" />
+              Запомнить пароль
+            </label>
             {error && <p className="text-red-400 text-sm">{error}</p>}
             <button type="submit" disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-3 transition disabled:opacity-50">

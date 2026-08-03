@@ -81,9 +81,11 @@ export default function TripForm() {
     queryFn: () => base44.entities.Asset.list(),
   });
 
-  const biKitsFromWarehouse = assets.filter(a => a.asset_type === 'bi_kit').map(a => a.name);
-  const modulesFromWarehouse = assets.filter(a => a.asset_type === 'reader_module').map(a => a.name);
-  const cabinetsFromWarehouse = assets.filter(a => a.asset_type === 'cabinet').map(a => a.name);
+  // Фильтр по компании отчёта: показываем только оборудование выбранного партнёра
+  const byPartner = (a) => !form.partner || a.partner === form.partner;
+  const biKitsFromWarehouse = assets.filter(a => a.asset_type === 'bi_kit' && byPartner(a)).map(a => a.name);
+  const modulesFromWarehouse = assets.filter(a => a.asset_type === 'reader_module' && byPartner(a)).map(a => a.name);
+  const cabinetsFromWarehouse = assets.filter(a => a.asset_type === 'cabinet' && byPartner(a)).map(a => a.name);
 
   const { data: existingTrip } = useQuery({
     queryKey: ['trip', tripId],
