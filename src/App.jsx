@@ -24,6 +24,8 @@ import AdminWarehouse from '@/pages/admin/AdminWarehouse';
 import AdminIncidents from '@/pages/admin/AdminIncidents';
 import Incidents from '@/pages/Incidents';
 import Warehouse from '@/pages/Warehouse';
+import WarehouseRequests from '@/pages/WarehouseRequests';
+import WarehouseRequestForm from '@/pages/WarehouseRequestForm';
 import Login from '@/pages/Login';
 
 const AuthenticatedApp = () => {
@@ -51,6 +53,9 @@ const AuthenticatedApp = () => {
         <Route path="/" element={null} />
         <Route path="/trips" element={null} />
         <Route path="/warehouse" element={null} />
+        <Route path="/warehouse/requests" element={<WarehouseRequests />} />
+        <Route path="/warehouse/requests/new/:type" element={<WarehouseRequestForm />} />
+        <Route path="/warehouse/requests/:type/:id/edit" element={<WarehouseRequestForm />} />
         <Route path="/profile" element={null} />
         <Route path="/crew/:id" element={<CrewView />} />
         <Route path="/trips/:id" element={<TripForm />} />

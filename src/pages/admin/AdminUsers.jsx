@@ -1,9 +1,10 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import MobileSelect from '@/components/common/MobileSelect';
+import { userPositionOptions } from '@/lib/userPositions';
 
 const API_URL = 'https://scabpro.com/api';
 const getToken = () => localStorage.getItem('auth_token');
@@ -85,7 +86,15 @@ export default function AdminUsers() {
               <div>
                 <p className="font-medium">{u.name || u.full_name || '—'}</p>
                 <p className="text-sm text-muted-foreground">{u.email}</p>
-                {u.position && <p className="text-sm text-muted-foreground">{u.position}</p>}
+                <div className="mt-2 min-w-52">
+                  <MobileSelect
+                    value={u.position || ''}
+                    onValueChange={position => updateUser.mutate({ id: u.id, position, status: 'active' })}
+                    placeholder="Выберите должность"
+                    options={userPositionOptions}
+                    triggerClassName="h-9"
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>

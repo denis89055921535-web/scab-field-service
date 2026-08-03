@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { HardHat, ClipboardList, BookOpen, User, Warehouse } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,8 +14,8 @@ export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isTripForm = location.pathname.startsWith('/trips/');
-  if (isTripForm) return null;
+  const isSubPage = location.pathname.startsWith('/trips/') || location.pathname.startsWith('/warehouse/');
+  if (isSubPage) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-area-bottom">

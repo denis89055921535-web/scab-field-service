@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Save, Loader2, Camera, X, FileDown, Mail, Plus, Trash2, MapPin, CheckCircle2 } from 'lucide-react';
 import MobileSelect from '@/components/common/MobileSelect';
+import { userPositionOptions } from '@/lib/userPositions';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import ChecklistForm from '@/components/trips/ChecklistSection';
@@ -404,11 +405,7 @@ const handleSubmitAndSend = async () => {
                     onValueChange={v => { const u = [...employees]; u[idx] = { ...u[idx], position: v }; updateEmployees(u); }}
                     placeholder="Должность"
                     disabled={isReadOnly}
-                    options={[
-                      { value: 'Техник', label: 'Техник' },
-                      { value: 'Инженер', label: 'Инженер' },
-                      { value: 'Супервайзер', label: 'Супервайзер' },
-                    ]}
+                    options={userPositionOptions}
                   />
                 </div>
                 {!isReadOnly && employees.length > 1 && (
