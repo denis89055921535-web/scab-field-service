@@ -1,5 +1,6 @@
 import base44 from "@base44/vite-plugin"
 import react from '@vitejs/plugin-react'
+import legacy from '@vitejs/plugin-legacy'
 import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
@@ -16,5 +17,16 @@ export default defineConfig({
       visualEditAgent: true
     }),
     react(),
+    legacy({
+      targets: ['Android >= 7', 'Chrome >= 55'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
+      renderLegacyChunks: true,
+      polyfills: [
+        'es.promise',
+        'es.array.iterator',
+        'es.object.assign',
+        'es.promise.finally',
+      ],
+    }),
   ]
 });
