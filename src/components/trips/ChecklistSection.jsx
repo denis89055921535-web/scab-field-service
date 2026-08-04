@@ -118,7 +118,10 @@ export const CHECKLIST_SECTIONS = [
 
 function getSectionStatus(section, sectionData) {
   const answers = sectionData?.answers || {};
-  const allFilled = section.fields.every(f => answers[f.key] !== undefined && answers[f.key] !== '');
+  const allFilled = section.fields.every(f => {
+    if (f.type === 'photo') return sectionData?.photos?.[f.key]?.length > 0;
+    return answers[f.key] !== undefined && answers[f.key] !== '';
+  });
   if (!allFilled) return 'incomplete';
   const hasNo = section.fields.some(f => {
     if (f.type !== 'yesno') return false;
