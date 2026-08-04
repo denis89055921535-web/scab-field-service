@@ -381,7 +381,7 @@ const handleSubmitAndSend = async () => {
 
         <div>
           <div className="flex items-center justify-between mb-1">
-            <Label className="text-xs">Сотрудники *</Label>
+            <Label className="text-xs">Исполнители *</Label>
             {!isReadOnly && (
               <button type="button" onClick={() => updateEmployees([...employees, { name: '', position: '' }])} className="flex items-center gap-1 text-xs text-primary hover:underline">
                 <Plus className="w-3 h-3" /> Добавить
