@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
-import { userPositionOptions } from '@/lib/userPositions';
 
 const API_URL = 'https://scabpro.com/api';
 
@@ -137,11 +136,9 @@ export default function Login() {
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1">Должность</label>
-              <select value={position} onChange={e => setPosition(e.target.value)}
-                className="w-full bg-slate-700 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Выберите должность</option>
-                {userPositionOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
+              <input type="text" value={position} onChange={e => setPosition(e.target.value)}
+                className="w-full bg-slate-700 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Инженер по сервисному обслуживанию" />
             </div>
             <div>
               <label className="block text-sm text-slate-400 mb-1">Телефон</label>

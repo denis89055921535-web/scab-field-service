@@ -1,9 +1,6 @@
 import { cacheSet, cacheGet, outboxAdd, genId } from '@/lib/offlineDb';
 import { checkOnline } from '@/lib/network';
-import { localEquipmentRequestClient } from '@/lib/localEquipmentRequests';
-import { applyLocalAssetOverride, applyLocalAssetOverrides } from '@/lib/localAssetOverrides';
 const API_URL = 'https://scabpro.com/api';
-const useLocalEquipmentRequests = import.meta.env.DEV || import.meta.env.VITE_REQUESTS_LOCAL_ONLY === 'true';
 // Базовый адрес сервера без /api — для картинок и файлов
 export const SERVER_URL = API_URL.replace(/\/api$/, '');
 
@@ -104,27 +101,10 @@ function createEntityClient(endpoint) {
 export const DrillingCrew = createEntityClient('/drilling-crews');
 export const TripLog = createEntityClient('/trip-logs');
 export const Incident = createEntityClient('/incidents');
-const remoteAssetClient = createEntityClient('/assets');
-export const Asset = useLocalEquipmentRequests
-  ? {
-      ...remoteAssetClient,
-      list: async (...args) => applyLocalAssetOverrides(await remoteAssetClient.list(...args)),
-      filter: async (...args) => applyLocalAssetOverrides(await remoteAssetClient.filter(...args)),
-      get: async id => applyLocalAssetOverride(await remoteAssetClient.get(id)),
-    }
-  : remoteAssetClient;
+export const Asset = createEntityClient('/assets');
 export const Instruction = createEntityClient('/instructions');
 export const User = createEntityClient('/users');
 export const InstructionCategory = createEntityClient('/instruction-categories');
-// На localhost заявки сохраняются только в localStorage и не затрагивают боевую БД.
-const remoteEquipmentRequestClient = createEntityClient('/equipment-requests');
-export const EquipmentRequest = useLocalEquipmentRequests
-  ? localEquipmentRequestClient
-  : {
-      ...remoteEquipmentRequestClient,
-      adminUpdate: (id, data) => request('PUT', `/equipment-requests/${id}/status`, data),
-      purchaseApproval: (id, data) => request('POST', `/equipment-requests/${id}/approval`, data),
-    };
 
 export const auth = {
   login: (email, password) => request('POST', '/auth/login', { email, password }),
@@ -140,7 +120,7 @@ export const auth = {
 
 export const base44 = {
   auth,
-  entities: { DrillingCrew, TripLog, Incident, Asset, Instruction, User, InstructionCategory, EquipmentRequest },
+  entities: { DrillingCrew, TripLog, Incident, Asset, Instruction, User, InstructionCategory },
   integrations: {
     Core: {
       UploadFile: async ({ file }) => {

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
-import { Package, ChevronRight, Pencil, Download, Boxes, ScanLine, Server, Wrench, ScanBarcode, ArrowLeftRight, ShoppingCart, ClipboardList } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Package, ChevronRight, Pencil, Download, Boxes, ScanLine, Server, Wrench, ScanBarcode } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/common/PageHeader';
@@ -21,8 +21,6 @@ const assetTypes = {
 };
 
 const conditionConfig = {
-  working: { label: 'В работе', color: 'bg-green-100 text-green-800' },
-  not_working: { label: 'Не в работе', color: 'bg-red-100 text-red-800' },
   good: { label: 'Исправен', color: 'bg-green-100 text-green-800' },
   needs_repair: { label: 'Требует ремонта', color: 'bg-yellow-100 text-yellow-800' },
   broken: { label: 'Неисправен', color: 'bg-red-100 text-red-800' },
@@ -36,7 +34,6 @@ const locationConfig = {
 };
 
 export default function Warehouse() {
-  const navigate = useNavigate();
   const { partner } = usePartner();
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
@@ -161,47 +158,6 @@ export default function Warehouse() {
               </div>
             </Card>
           ))}
-        </div>
-        {/* Заявки на изменение фактического состояния склада */}
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold">Действия со складом</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Card
-              onClick={() => navigate('/warehouse/requests/new/movement')}
-              className="p-4 min-h-[140px] cursor-pointer active:opacity-70 border-blue-500/40 bg-gradient-to-br from-blue-500/10 to-card flex flex-col"
-            >
-              <div className="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-500 flex items-center justify-center mb-3">
-                <ArrowLeftRight className="w-5 h-5" />
-              </div>
-              <div className="font-semibold text-sm">Перемещение</div>
-              <div className="text-xs text-muted-foreground mt-1 flex-1">Между складом, бригадой и ремонтом</div>
-              <div className="text-xs font-medium text-blue-500 mt-3 flex items-center justify-between">
-                Создать заявку <ChevronRight className="w-4 h-4" />
-              </div>
-            </Card>
-            <Card
-              onClick={() => navigate('/warehouse/requests/new/purchase')}
-              className="p-4 min-h-[140px] cursor-pointer active:opacity-70 border-purple-500/40 bg-gradient-to-br from-purple-500/10 to-card flex flex-col"
-            >
-              <div className="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-500 flex items-center justify-center mb-3">
-                <ShoppingCart className="w-5 h-5" />
-              </div>
-              <div className="font-semibold text-sm">Приобретение</div>
-              <div className="text-xs text-muted-foreground mt-1 flex-1">Закупка оборудования и комплектующих</div>
-              <div className="text-xs font-medium text-purple-500 mt-3 flex items-center justify-between">
-                Создать заявку <ChevronRight className="w-4 h-4" />
-              </div>
-            </Card>
-          </div>
-          <button
-            type="button"
-            onClick={() => navigate('/warehouse/requests')}
-            className="w-full h-11 rounded-xl border border-border bg-card px-4 flex items-center gap-3 text-sm font-medium active:bg-muted"
-          >
-            <ClipboardList className="w-4 h-4 text-primary" />
-            <span className="flex-1 text-left">Мои заявки</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
         </div>
         {/* Типы — кликабельные плитки */}
         <div className="grid grid-cols-3 gap-3">
