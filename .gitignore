@@ -30,3 +30,6 @@ dist-ssr
 .env
 .vite
 *.bak
+*.keystore
+keystore.properties
+android/app/keystore.properties
