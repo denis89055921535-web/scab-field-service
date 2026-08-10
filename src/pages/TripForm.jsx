@@ -307,7 +307,13 @@ const handleSubmitAndSend = async () => {
       toast.error('Ошибка удаления: ' + (err.message || ''));
     }
   };
-  const handleExportExcel = () => exportToExcel(form);
+  const handleExportExcel = async () => {
+    try {
+      await exportToExcel(form);
+    } catch (err) {
+      toast.error('Ошибка экспорта: ' + (err.message || 'неизвестная'));
+    }
+  };
 
   const handleGetGeo = () => {
     if (!navigator.geolocation) {

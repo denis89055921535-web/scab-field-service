@@ -107,4 +107,4 @@ android/capacitor-cordova-android-plugins
 android/app/src/main/assets/public
 android/local.properties
 android/.idea
-*.keystore
+*.keystorekeystore.properties

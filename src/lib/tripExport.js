@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { saveWorkbook } from '@/lib/exportHelper';
 import { base44 } from '@/api/base44Client';
 import { jsPDF } from 'jspdf';
 import { CHECKLIST_SECTIONS } from '@/components/trips/ChecklistSection';
@@ -43,7 +44,7 @@ function getChecklistRows(sections = {}) {
   return rows;
 }
 
-export function exportToExcel(trip) {
+export async function exportToExcel(trip) {
   const wb = XLSX.utils.book_new();
 
   // Sheet 1: General info
@@ -71,7 +72,7 @@ export function exportToExcel(trip) {
   XLSX.utils.book_append_sheet(wb, ws2, 'Чек-лист');
 
   const fileName = `Отчет_выезд_${trip.crew_number || 'бригада'}_${trip.trip_date || 'дата'}.xlsx`;
-  XLSX.writeFile(wb, fileName);
+  await saveWorkbook(wb, fileName);
 }
 
 export function exportToPDF(trip) {
@@ -146,7 +147,7 @@ export function exportToPDF(trip) {
   doc.save(fileName);
 }
 
-export function exportSummaryToExcel(trips) {
+export async function exportSummaryToExcel(trips) {
   const wb = XLSX.utils.book_new();
 
   // Sheet 1: summary
@@ -205,7 +206,7 @@ export function exportSummaryToExcel(trips) {
   XLSX.utils.book_append_sheet(wb, ws2, 'Чек-листы');
 
   const today = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(wb, `Сводный_отчёт_выезды_${today}.xlsx`);
+  await saveWorkbook(wb, `Сводный_отчёт_выезды_${today}.xlsx`);
 }
 
 export async function sendReportByEmail(trip, toEmail) {

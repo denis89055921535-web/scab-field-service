@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw, Download, Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { exportSummaryToExcel } from '@/lib/tripExport';
+import { toast } from 'sonner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import MobileSelect from '@/components/common/MobileSelect';
 import { format } from 'date-fns';
@@ -98,7 +99,13 @@ export default function Trips() {
               size="sm"
               variant="outline"
               className="h-8 text-xs"
-              onClick={() => exportSummaryToExcel(filteredTrips)}
+              onClick={async () => {
+                try {
+                  await exportSummaryToExcel(filteredTrips);
+                } catch (err) {
+                  toast.error('Ошибка экспорта: ' + (err.message || 'неизвестная'));
+                }
+              }}
               disabled={filteredTrips.length === 0}
             >
               <Download className="w-3.5 h-3.5 mr-1" />
