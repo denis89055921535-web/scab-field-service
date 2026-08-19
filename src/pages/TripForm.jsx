@@ -1,6 +1,6 @@
 import { checkOnline } from '@/lib/network';
 import { outboxGet, outboxUpdate, outboxRemove } from '@/lib/offlineDb';
-import { takeAndSavePhoto, uploadLocalPhotos } from '@/lib/photoService';
+import { takeAndSavePhoto, takeAndSaveMultiplePhotos, uploadLocalPhotos } from '@/lib/photoService';
 import { uploadLocalFiles } from '@/lib/fileService';
 import SmartPhoto from '@/components/common/SmartPhoto';
 import { useState, useEffect } from 'react';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Save, Loader2, Camera, X, FileDown, Mail, Plus, Trash2, MapPin, CheckCircle2 } from 'lucide-react';
+import { Save, Loader2, Camera, Images, X, FileDown, Mail, Plus, Trash2, MapPin, CheckCircle2 } from 'lucide-react';
 import MobileSelect from '@/components/common/MobileSelect';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
@@ -220,6 +220,17 @@ export default function TripForm() {
 
   const removePhoto = (idx) => {
     setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
+  };
+  const handlePhotoUploadMultiple = async () => {
+    try {
+      const results = await takeAndSaveMultiplePhotos();
+      setForm(f => ({ ...f, photos: [...f.photos, ...results.map(function(r) { return r.url; })] }));
+      toast.success('Добавлено фото: ' + results.length);
+    } catch (err) {
+      if (err?.message && !err.message.includes('не выбран') && !err.message.includes('cancelled')) {
+        toast.error('Ошибка фото: ' + err.message);
+      }
+    }
   };
 
   const handleSave = () => {
@@ -572,9 +583,20 @@ const handleSubmitAndSend = async () => {
               <button
                 type="button"
                 onClick={handlePhotoUpload}
+                title="Сделать фото или выбрать одно"
                 className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
               >
                 <Camera className="w-5 h-5 text-muted-foreground" />
+              </button>
+            )}
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={handlePhotoUploadMultiple}
+                title="Выбрать несколько фото из галереи"
+                className="w-16 h-16 rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+              >
+                <Images className="w-5 h-5 text-muted-foreground" />
               </button>
             )}
           </div>
