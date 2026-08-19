@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Camera, Loader2, X, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Camera, Images, Loader2, X, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
-import { takeAndSavePhoto } from '@/lib/photoService';
+import { takeAndSavePhoto, takeAndSaveMultiplePhotos } from '@/lib/photoService';
 import SmartPhoto from '@/components/common/SmartPhoto';
 import FileAttach from '@/components/common/FileAttach';
 import { toast } from 'sonner';
@@ -208,6 +208,19 @@ function PhotoUpload({ photos = [], onAdd, onRemove }) {
     }
     setUploading(false);
   };
+  const handleUploadMultiple = async () => {
+    setUploading(true);
+    try {
+      const results = await takeAndSaveMultiplePhotos();
+      onAdd(results.map(function(r) { return r.url; }));
+      toast.success('Добавлено фото: ' + results.length);
+    } catch (err) {
+      if (err && err.message && !err.message.includes('не выбран') && !err.message.includes('cancelled')) {
+        toast.error('Ошибка фото: ' + err.message);
+      }
+    }
+    setUploading(false);
+  };
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -229,6 +242,18 @@ function PhotoUpload({ photos = [], onAdd, onRemove }) {
       >
         {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
           <Camera className={cn('w-4 h-4', photos.length > 0 ? 'text-primary' : 'text-muted-foreground')} />
+        )}
+      </button>
+      <button
+        type="button"
+        onClick={handleUploadMultiple}
+        className={cn(
+          'cursor-pointer w-14 h-14 border-2 border-dashed rounded-lg flex items-center justify-center transition-colors',
+          photos.length > 0 ? 'border-primary/50 bg-primary/5' : 'border-border hover:bg-muted'
+        )}
+      >
+        {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+          <Images className={cn('w-4 h-4', photos.length > 0 ? 'text-primary' : 'text-muted-foreground')} />
         )}
       </button>
     </div>
@@ -366,7 +391,7 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                   </div>
                 )}
 
-                {((isNo && field.type === 'yesno') || (field.type === 'count' && answers[field.key])) && field.hasPhotoComment && (
+                {(field.hasFile || (isNo && field.type === 'yesno') || (field.type === 'count' && answers[field.key])) && field.hasPhotoComment && (
                   <div className="ml-0 pl-3 border-l-2 border-red-200 space-y-3">
                     <div>
                       <Label className="text-xs text-muted-foreground">Комментарий</Label>

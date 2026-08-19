@@ -25,6 +25,7 @@ import AdminIncidents from '@/pages/admin/AdminIncidents';
 import Incidents from '@/pages/Incidents';
 import Warehouse from '@/pages/Warehouse';
 import Login from '@/pages/Login';
+import ResetPassword from '@/pages/ResetPassword';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
         <Route path="/admin/users" element={<AdminUsers />} />
       </Route>
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

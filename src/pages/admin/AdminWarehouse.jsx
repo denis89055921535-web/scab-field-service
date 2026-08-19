@@ -50,6 +50,7 @@ export default function AdminWarehouse() {
   const [editId, setEditId] = useState(null);
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
+  const [search, setSearch] = useState('');
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets', partner],
@@ -127,7 +128,11 @@ export default function AdminWarehouse() {
   const filtered = assets.filter(a => {
     const byType = filterType === 'all' || a.asset_type === filterType;
     const byLoc = filterLocation === 'all' || a.location_type === filterLocation;
-    return byType && byLoc;
+    const q = search.trim().toLowerCase();
+    const bySearch = !q ||
+      (a.name || '').toLowerCase().includes(q) ||
+      (a.serial_number || '').toLowerCase().includes(q);
+    return byType && byLoc && bySearch;
   });
 
   const stats = {
@@ -274,6 +279,12 @@ export default function AdminWarehouse() {
 
       {/* Фильтры */}
       <div className="flex gap-2 mb-4 flex-wrap items-center">
+        <Input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Поиск по названию или серийному №..."
+          className="w-64"
+        />
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-44"><SelectValue placeholder="Тип" /></SelectTrigger>
           <SelectContent>

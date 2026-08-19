@@ -168,9 +168,9 @@ export default function AdminInstructions() {
                   <div>
                     <Label className="text-xs mb-1 block">PDF файл</Label>
                     {fileUrl ? (
-                      <div className="flex items-center gap-2 p-2 border rounded-lg">
+                      <div className="flex items-center gap-2 p-2 border rounded-lg min-w-0">
                         <FileText className="w-4 h-4 text-red-500 shrink-0" />
-                        <span className="text-sm truncate flex-1">{fileName}</span>
+                        <span className="text-sm truncate flex-1 min-w-0">{fileName}</span>
                       </div>
                     ) : (
                       <label className="flex items-center justify-center gap-2 border-2 border-dashed rounded-lg p-4 cursor-pointer hover:bg-muted">

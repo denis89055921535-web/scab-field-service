@@ -12,6 +12,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [position, setPosition] = useState('');
   const [phone, setPhone] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -66,6 +67,25 @@ export default function Login() {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError(''); setSuccess(''); setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Ошибка отправки');
+      setSuccess(data.message || 'Если email зарегистрирован, письмо со ссылкой отправлено');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="bg-slate-800 rounded-2xl p-8 w-full max-w-md">
@@ -78,7 +98,7 @@ export default function Login() {
           </div>
         )}
 
-        {mode === 'login' ? (
+        {mode === 'login' && (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm text-slate-400 mb-1">Email</label>
@@ -98,11 +118,15 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer select-none">
-              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
-                className="w-4 h-4 rounded accent-blue-600" />
-              Запомнить пароль
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer select-none">
+                <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
+                  className="w-4 h-4 rounded accent-blue-600" />
+                Запомнить пароль
+              </label>
+              <button type="button" onClick={() => { setMode('forgot'); setError(''); setSuccess(''); setForgotEmail(email); }}
+                className="text-sm text-blue-400 hover:underline">Забыли пароль?</button>
+            </div>
             {error && <p className="text-red-400 text-sm">{error}</p>}
             <button type="submit" disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-3 transition disabled:opacity-50">
@@ -114,7 +138,30 @@ export default function Login() {
                 className="text-blue-400 hover:underline">Подать заявку</button>
             </p>
           </form>
-        ) : (
+        )}
+
+        {mode === 'forgot' && (
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <p className="text-slate-400 text-sm">Введите email, указанный при регистрации. Мы отправим ссылку для сброса пароля.</p>
+            <div>
+              <label className="block text-sm text-slate-400 mb-1">Email</label>
+              <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
+                className="w-full bg-slate-700 text-white rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="your@email.com" required />
+            </div>
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <button type="submit" disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-3 transition disabled:opacity-50">
+              {loading ? 'Отправка...' : 'Отправить ссылку'}
+            </button>
+            <p className="text-center text-slate-400 text-sm">
+              <button type="button" onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+                className="text-blue-400 hover:underline">Вернуться ко входу</button>
+            </p>
+          </form>
+        )}
+
+        {mode === 'register' && (
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
               <label className="block text-sm text-slate-400 mb-1">Полное имя</label>

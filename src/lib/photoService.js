@@ -90,6 +90,41 @@ export async function takeAndSavePhoto() {
   return await processPhoto(blob);
 }
 
+// Выбор нескольких фото сразу: нативная галерея в APK, множественный выбор файлов в браузере
+export async function pickMultiplePhotos() {
+  if (Capacitor.isNativePlatform()) {
+    const result = await Camera.pickImages({
+      quality: 80,
+      limit: 0,
+    });
+    const blobs = await Promise.all(
+      (result.photos || []).map(async (photo) => {
+        const response = await fetch(photo.webPath);
+        return await response.blob();
+      })
+    );
+    return blobs;
+  }
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = true;
+    input.onchange = (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length) resolve(files);
+      else reject(new Error('Файлы не выбраны'));
+    };
+    input.click();
+  });
+}
+
+// Полный цикл для нескольких фото: выбрать и обработать каждое
+export async function takeAndSaveMultiplePhotos() {
+  const blobs = await pickMultiplePhotos();
+  return await Promise.all(blobs.map((blob) => processPhoto(blob)));
+}
+
 // Проверка: локальная ли это ссылка на фото
 export function isLocalPhoto(url) {
   return typeof url === 'string' && url.startsWith('local-photo://');
