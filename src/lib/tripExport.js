@@ -3,6 +3,7 @@ import { saveWorkbook } from '@/lib/exportHelper';
 import { base44 } from '@/api/base44Client';
 import { jsPDF } from 'jspdf';
 import { CHECKLIST_SECTIONS } from '@/components/trips/ChecklistSection';
+import { formatWorkTypes } from '@/lib/workTypes';
 
 const TRIP_STATUS_LABELS = {
   draft: 'Черновик',
@@ -14,11 +15,14 @@ const TRIP_STATUS_LABELS = {
 
 const WORK_TYPE_LABELS = {
   maintenance: 'Обслуживание оборудования',
+  maintenance_work_position: 'Обслуживание оборуд. (перевод в рабочее положение)',
+  maintenance_service_position: 'Обслуживание оборуд. (перевод в сервисное положение)',
   bi_accident: 'Авария БИ',
   bi_inspection: 'Инспекция БИ',
   equipment_install: 'Монтаж оборудования',
   equipment_uninstall: 'Демонтаж оборудования',
 };
+
 
 function getChecklistRows(sections = {}) {
   const rows = [];
@@ -55,7 +59,7 @@ export async function exportToExcel(trip) {
     ['№ буровой бригады', trip.crew_number || ''],
     ['Месторождение', trip.field_name || ''],
     ['Тип буровой установки', trip.drill_type || ''],
-    ['Тип работ', WORK_TYPE_LABELS[trip.work_type] || trip.work_type || ''],
+    ['Тип работ', formatWorkTypes(trip.work_type, WORK_TYPE_LABELS) || ''],
     ['Комплект БИ', trip.bi_kits_numbers || ''],
     ['Причина выезда', trip.reason || ''],
     ['Статус', TRIP_STATUS_LABELS[trip.status] || trip.status || ''],
@@ -115,7 +119,7 @@ export function exportToPDF(trip) {
     ['Brigada', trip.crew_number],
     ['Mestorozhdenie', trip.field_name],
     ['Tip burovoy', trip.drill_type],
-    ['Tip rabot', WORK_TYPE_LABELS[trip.work_type] || trip.work_type],
+    ['Tip rabot', formatWorkTypes(trip.work_type, WORK_TYPE_LABELS)],
     ['Komplekt BI', trip.bi_kits_numbers],
     ['Prichina vyezda', trip.reason],
     ['Status', TRIP_STATUS_LABELS[trip.status] || trip.status],
@@ -158,7 +162,7 @@ export async function exportSummaryToExcel(trips) {
     'ФИО сотрудника': trip.employee_name || '',
     'Должность': trip.position || '',
     'Тип буровой': trip.drill_type || '',
-    'Тип работ': WORK_TYPE_LABELS[trip.work_type] || trip.work_type || '',
+    'Тип работ': formatWorkTypes(trip.work_type, WORK_TYPE_LABELS) || '',
     'Комплект БИ': trip.bi_kits_numbers || '',
     'Причина выезда': trip.reason || '',
     'Модуль считывания': trip.module_type || '',

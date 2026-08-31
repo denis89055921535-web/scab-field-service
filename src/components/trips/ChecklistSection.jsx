@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, Camera, Images, Loader2, X, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { base44 } from '@/api/base44Client';
 import { takeAndSavePhoto, takeAndSaveMultiplePhotos } from '@/lib/photoService';
@@ -14,7 +15,7 @@ export const CHECKLIST_SECTIONS = [
     key: 'preparation',
     title: 'Подготовка к выезду',
     fields: [
-      { key: 'trunk_photo', label: 'Фото багажника', type: 'photo' },
+      { key: 'trunk_photo', label: 'Фото багажника/фото инструментов и ЗИП для данной операции', type: 'photo' },
       { key: 'zip', label: 'Наличие ЗИП', type: 'yesno' },
       { key: 'antenna', label: 'Корпусная антенна', type: 'yesno' },
       { key: 'reader_cable', label: 'Ридер. Кабель Type-C', type: 'yesno' },
@@ -47,11 +48,13 @@ export const CHECKLIST_SECTIONS = [
     title: 'Антенны',
     fields: [
       { key: 'visual', label: 'Визуальный осмотр', type: 'yesno', hasPhotoComment: true },
-      { key: 'rfid_dirty', label: 'Проверка тестовой метки на грязные антенны — количество работающих антенн', type: 'count', options: ['1','2','3','4'], hasPhotoComment: true },
+      { key: 'test_tag_number', label: 'Номер тестовой метки', type: 'text' },
+      { key: 'rfid_dirty', label: 'Проверка тестовой метки на грязные антенны — количество работающих антенн', type: 'count', options: ['1','2','3','4'], hasPhotoComment: true, photoLabel: 'Фото грязных антенн' },
       { key: 'cleaning', label: 'Проведена очистка антенн', type: 'yesno', hasPhotoComment: true },
-      { key: 'rfid_clean', label: 'Проверка тестовой метки на чистые антенны — количество работающих антенн', type: 'count', options: ['1','2','3','4'], hasPhotoComment: true },
+      { key: 'rfid_clean', label: 'Проверка тестовой метки на чистые антенны — количество работающих антенн', type: 'count', options: ['1','2','3','4'], hasPhotoComment: true, photoLabel: 'Фото чистых антенн' },
       { key: 'position', label: 'Контроль положения антенн', type: 'yesno', hasPhotoComment: true },
       { key: 'structure', label: 'Контроль состояния конструкций', type: 'yesno', hasPhotoComment: true },
+      { key: 'sealed', label: 'Система герметична', type: 'yesno', hasPhotoComment: true },
       { key: 'repair', label: 'Ремонт МС / Замена антенн', type: 'yesno', hasPhotoComment: true },
     ],
   },
@@ -351,6 +354,15 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                     />
                   </div>
                 )}
+                {field.type === 'text' && (
+                  <Input
+                    value={answers[field.key] || ''}
+                    onChange={e => setAnswer(field.key, e.target.value)}
+                    placeholder={field.placeholder || 'Введите значение...'}
+                    readOnly={readOnly}
+                    disabled={readOnly}
+                  />
+                )}
                 {field.type === 'photo' && (
                   <div>
                     {readOnly ? (
@@ -406,7 +418,7 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                       />
                     </div>
                     <div>
-                      <Label className="text-xs mb-1 block text-muted-foreground">Фото</Label>
+                      <Label className="text-xs mb-1 block text-muted-foreground">{field.photoLabel || 'Фото'}</Label>
                       {readOnly ? (
                         <div className="flex flex-wrap gap-2">
                           {(sectionPhotos[field.key] || []).map((url, i) => (

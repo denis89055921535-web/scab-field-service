@@ -135,14 +135,26 @@ export default function AdminUsers() {
                   <p className="text-sm text-muted-foreground">{u.email}</p>
                   {u.position && <p className="text-sm text-muted-foreground">{u.position}</p>}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                    {u.role === 'admin' ? 'Администратор' : 'Инженер'}
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <Badge variant={u.role === 'admin' ? 'default' : u.role === 'supervisor' ? 'outline' : 'secondary'}>
+                    {u.role === 'admin' ? 'Администратор' : u.role === 'supervisor' ? 'Супервайзер' : 'Инженер'}
                   </Badge>
                   {u.role !== 'admin' && (
                     <Button size="sm" variant="outline"
                       onClick={() => updateUser.mutate({ id: u.id, role: 'admin', status: 'active', position: u.position, phone: u.phone, department: u.department, allowed_partners: u.allowed_partners || [] })}>
                       Сделать админом
+                    </Button>
+                  )}
+                  {u.role !== 'supervisor' && u.role !== 'admin' && (
+                    <Button size="sm" variant="outline"
+                      onClick={() => updateUser.mutate({ id: u.id, role: 'supervisor', status: 'active', position: u.position, phone: u.phone, department: u.department, allowed_partners: u.allowed_partners || [] })}>
+                      Сделать супервайзером
+                    </Button>
+                  )}
+                  {u.role === 'supervisor' && (
+                    <Button size="sm" variant="outline"
+                      onClick={() => updateUser.mutate({ id: u.id, role: 'engineer', status: 'active', position: u.position, phone: u.phone, department: u.department, allowed_partners: u.allowed_partners || [] })}>
+                      Убрать роль супервайзера
                     </Button>
                   )}
                   <Button size="sm" variant="destructive"

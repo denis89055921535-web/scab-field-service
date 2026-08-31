@@ -18,8 +18,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import ChecklistDashboard from '@/components/crews/ChecklistDashboard';
 
+import { formatWorkTypes } from '@/lib/workTypes';
 const workTypeLabels = {
   maintenance: 'Обслуживание',
+  maintenance_work_position: 'Обслуживание (рабочее положение)',
+  maintenance_service_position: 'Обслуживание (сервисное положение)',
   bi_accident: 'Авария БИ',
   bi_inspection: 'Инспекция БИ',
   equipment_install: 'Монтаж',
@@ -149,7 +152,7 @@ export default function CrewDetail({ crew, onStatusChange, tripHistory = [], ass
                   {trip.work_type && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Briefcase className="w-3 h-3" />
-                      {workTypeLabels[trip.work_type] || trip.work_type}
+                      {formatWorkTypes(trip.work_type, workTypeLabels)}
                     </div>
                   )}
                 </CardContent>

@@ -6,7 +6,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
-import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw, Download, Search, X } from 'lucide-react';
+import { Plus, Calendar, MapPin, User, Briefcase, RefreshCw, Download, Search, X, CheckCircle2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { exportSummaryToExcel } from '@/lib/tripExport';
 import { toast } from 'sonner';
@@ -19,8 +19,11 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { tripStatuses } from '@/lib/statusConfig';
 import { usePartner } from '@/lib/PartnerContext';
 
+import { formatWorkTypes } from '@/lib/workTypes';
 const workTypeLabels = {
   maintenance: 'Обслуживание оборуд.',
+  maintenance_work_position: 'Обслуживание оборуд. (рабочее положение)',
+  maintenance_service_position: 'Обслуживание оборуд. (сервисное положение)',
   bi_accident: 'Авария БИ',
   bi_inspection: 'Инспекция БИ',
   equipment_install: 'Монтаж оборуд.',
@@ -226,7 +229,13 @@ export default function Trips() {
                   {trip.work_type && (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Briefcase className="w-3 h-3" />
-                      {workTypeLabels[trip.work_type] || trip.work_type}
+                      {formatWorkTypes(trip.work_type, workTypeLabels)}
+                    </div>
+                  )}
+                  {trip.verified_by_supervisor && (
+                    <div className="flex items-center justify-end gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Проверено Супервайзером
                     </div>
                   )}
                 </div>

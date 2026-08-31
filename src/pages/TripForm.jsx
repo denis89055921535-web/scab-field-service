@@ -1,4 +1,6 @@
 import { checkOnline } from '@/lib/network';
+import { cn } from '@/lib/utils';
+import { WORK_TYPE_OPTIONS, OTHER_PREFIX, parseWorkTypes, serializeWorkTypes } from '@/lib/workTypes';
 import { outboxGet, outboxUpdate, outboxRemove } from '@/lib/offlineDb';
 import { takeAndSavePhoto, takeAndSaveMultiplePhotos, uploadLocalPhotos } from '@/lib/photoService';
 import { useAuth } from '@/lib/AuthContext';
@@ -12,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Save, Loader2, Camera, Images, X, FileDown, Mail, Plus, Trash2, MapPin, CheckCircle2 } from 'lucide-react';
+import { Save, Loader2, Camera, Images, X, FileDown, Mail, Plus, Trash2, MapPin, CheckCircle2, ShieldCheck } from 'lucide-react';
 import MobileSelect from '@/components/common/MobileSelect';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
@@ -94,7 +96,7 @@ export default function TripForm() {
     queryKey: ['trip', tripId],
     queryFn: async () => {
       const local = await outboxGet(tripId);
-      if (local) return { ...local.data, _local: true, _localId: local.localId };
+      if (local) return { ...local.data, _local: true, _localId: local.localId, _localMethod: local.method };
       const trips = await base44.entities.TripLog.filter({ id: tripId });
       return trips[0];
     },
@@ -141,7 +143,12 @@ export default function TripForm() {
   const saveMutation = useMutation({
     networkMode: 'always',
     mutationFn: async (data) => {
-      // Если это локальный отчёт (лежит в outbox) — сохраняем обратно туда
+      // Существующий на сервере отчёт, отредактированный офлайн — используем update(),
+      // он сам решит: если сеть появилась — отправит на сервер, если нет — обновит очередь.
+      if (form._local && form._localId && form._localMethod === 'PUT') {
+        return base44.entities.TripLog.update(tripId, data);
+      }
+      // Полностью новый локальный черновик (никогда не существовал на сервере) — храним в очереди
       if (form._local && form._localId) {
         await outboxUpdate(form._localId, { data: { ...data, id: form._localId } });
         return { ...data, id: form._localId, _local: true, _offline: true };
@@ -286,12 +293,13 @@ const handleSubmitAndSend = async () => {
       toast('Загрузка фотографий...');
       data = await uploadLocalPhotos(data);
       data = await uploadLocalFiles(data);
-      if (isNew || form._local) {
-        // Новый или локальный (его ещё нет на сервере) — создаём
+      if (isNew || (form._local && form._localMethod !== 'PUT')) {
+        // Новый локальный черновик, которого ещё нет на сервере — создаём
         await base44.entities.TripLog.create(data);
         // Локальный отправлен — убираем из очереди
         if (form._localId) await outboxRemove(form._localId);
       } else {
+        // Существующий на сервере отчёт (в т.ч. отредактированный офлайн) — обновляем
         await base44.entities.TripLog.update(tripId, data);
       }
       await sendReportByEmail(data);
@@ -365,6 +373,47 @@ const handleSubmitAndSend = async () => {
       {isReadOnly && (
         <div className="mx-4 mt-3 px-4 py-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400">
           Выезд сохранён и не может быть изменён
+        </div>
+      )}
+      {form.email_sent && form.email_sent_at && (
+        <div className="mx-4 mt-3 px-4 py-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs text-emerald-700 dark:text-emerald-400">
+          Отчёт отправлен: {new Date(form.email_sent_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+        </div>
+      )}
+      {form.email_sent && user?.role === 'supervisor' && (
+        <button
+          type="button"
+          onClick={async () => {
+            const next = !form.verified_by_supervisor;
+            setForm(f => ({ ...f, verified_by_supervisor: next }));
+            try {
+              await base44.entities.TripLog.update(tripId, { verified_by_supervisor: next });
+              toast.success(next ? 'Отчёт отмечен как проверенный' : 'Отметка проверки снята');
+            } catch (err) {
+              setForm(f => ({ ...f, verified_by_supervisor: !next }));
+              toast.error('Ошибка: ' + (err.message || 'не удалось сохранить'));
+            }
+          }}
+          className={cn(
+            'mx-4 mt-3 w-[calc(100%-2rem)] flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm transition-colors',
+            form.verified_by_supervisor
+              ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400'
+              : 'border-border text-muted-foreground hover:bg-muted'
+          )}
+        >
+          <span className={cn(
+            'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
+            form.verified_by_supervisor ? 'bg-emerald-500 border-emerald-500' : 'border-muted-foreground'
+          )}>
+            {form.verified_by_supervisor && <CheckCircle2 className="w-4 h-4 text-white" />}
+          </span>
+          Проверено Супервайзером
+        </button>
+      )}
+      {form.email_sent && form.verified_by_supervisor && user?.role !== 'supervisor' && (
+        <div className="mx-4 mt-3 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-700 rounded-lg text-sm text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4" />
+          Проверено Супервайзером
         </div>
       )}
 
@@ -475,20 +524,81 @@ const handleSubmitAndSend = async () => {
         </div>
 
         <div>
-          <Label className="text-xs">Тип работ</Label>
-          <MobileSelect
-            value={form.work_type}
-            onValueChange={v => setForm(f => ({ ...f, work_type: v }))}
-            placeholder="Выберите тип работ"
-            disabled={isReadOnly}
-            options={[
-              { value: 'maintenance', label: 'Обслуживание оборуд.' },
-              { value: 'bi_accident', label: 'Авария БИ' },
-              { value: 'bi_inspection', label: 'Инспекция/Перечиповка БИ' },
-              { value: 'equipment_install', label: 'Монтаж оборуд.' },
-              { value: 'equipment_uninstall', label: 'Демонтаж оборуд.' },
-            ]}
-          />
+          <Label className="text-xs mb-1.5 block">Тип работ</Label>
+          <div className="flex flex-wrap gap-1.5">
+            {WORK_TYPE_OPTIONS.map(function(opt) {
+              const current = parseWorkTypes(form.work_type);
+              const selected = current.includes(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  disabled={isReadOnly}
+                  onClick={() => setForm(f => {
+                    const cur = parseWorkTypes(f.work_type);
+                    const next = selected ? cur.filter(t => t !== opt.value) : [...cur, opt.value];
+                    return { ...f, work_type: serializeWorkTypes(next) };
+                  })}
+                  className={cn(
+                    'text-xs px-2.5 py-1.5 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+                    selected
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+            {(function() {
+              const current = parseWorkTypes(form.work_type);
+              const otherEntry = current.find(t => t.startsWith(OTHER_PREFIX));
+              const isOtherSelected = !!otherEntry;
+              return (
+                <button
+                  type="button"
+                  disabled={isReadOnly}
+                  onClick={() => setForm(f => {
+                    const cur = parseWorkTypes(f.work_type);
+                    const hasOther = cur.some(t => t.startsWith(OTHER_PREFIX));
+                    const next = hasOther
+                      ? cur.filter(t => !t.startsWith(OTHER_PREFIX))
+                      : [...cur, OTHER_PREFIX];
+                    return { ...f, work_type: serializeWorkTypes(next) };
+                  })}
+                  className={cn(
+                    'text-xs px-2.5 py-1.5 rounded-full border transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+                    isOtherSelected
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  Другие типы работ
+                </button>
+              );
+            })()}
+          </div>
+          {(function() {
+            const current = parseWorkTypes(form.work_type);
+            const otherEntry = current.find(t => t.startsWith(OTHER_PREFIX));
+            if (otherEntry === undefined) return null;
+            const otherText = otherEntry.slice(OTHER_PREFIX.length);
+            return (
+              <Textarea
+                className="mt-2"
+                value={otherText}
+                onChange={e => setForm(f => {
+                  const cur = parseWorkTypes(f.work_type).filter(t => !t.startsWith(OTHER_PREFIX));
+                  cur.push(OTHER_PREFIX + e.target.value);
+                  return { ...f, work_type: serializeWorkTypes(cur) };
+                })}
+                placeholder="Опишите проводимые работы..."
+                rows={2}
+                readOnly={isReadOnly}
+                disabled={isReadOnly}
+              />
+            );
+          })()}
         </div>
 
         <div>

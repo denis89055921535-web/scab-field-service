@@ -1,4 +1,4 @@
-import { cacheSet, cacheGet, outboxAdd, genId } from '@/lib/offlineDb';
+import { cacheSet, cacheGet, outboxAdd, outboxGet, outboxRemove, genId } from '@/lib/offlineDb';
 import { checkOnline } from '@/lib/network';
 const API_URL = 'https://scabpro.com/api';
 // Базовый адрес сервера без /api — для картинок и файлов
@@ -93,7 +93,27 @@ function createEntityClient(endpoint) {
       // Возвращаем отчёт с пометкой, что он ждёт отправки
       return { ...data, id: localId, _offline: true };
     },
-    update: (id, data) => request('PUT', `${endpoint}/${id}`, data),
+    update: async (id, data) => {
+      const online = await checkOnline();
+      if (online) {
+        // Если ранее было отложенное офлайн-обновление этой же записи — оно больше не нужно
+        await outboxRemove(id);
+        return request('PUT', `${endpoint}/${id}`, data);
+      }
+      // Офлайн: сохраняем изменения в очередь, не теряя их.
+      // Ключ очереди — реальный id записи на сервере (record.method помечает тип операции).
+      const existing = await outboxGet(id);
+      const record = {
+        localId: id,
+        endpoint,
+        method: 'PUT',
+        data: { ...(existing?.data || {}), ...data, id },
+        status: 'pending',
+        createdAt: existing?.createdAt || Date.now(),
+      };
+      await outboxAdd(record);
+      return { ...data, id, _offline: true };
+    },
     delete: (id) => request('DELETE', `${endpoint}/${id}`),
   };
 }
