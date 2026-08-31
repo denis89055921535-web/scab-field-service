@@ -1,6 +1,7 @@
 import { checkOnline } from '@/lib/network';
 import { outboxGet, outboxUpdate, outboxRemove } from '@/lib/offlineDb';
 import { takeAndSavePhoto, takeAndSaveMultiplePhotos, uploadLocalPhotos } from '@/lib/photoService';
+import { useAuth } from '@/lib/AuthContext';
 import { uploadLocalFiles } from '@/lib/fileService';
 import SmartPhoto from '@/components/common/SmartPhoto';
 import { useState, useEffect } from 'react';
@@ -69,7 +70,9 @@ export default function TripForm() {
   const [geoLoading, setGeoLoading] = useState(false);
 
   // Запрет редактирования для любых сохранённых выездов
-  const isReadOnly = !isNew && !!form.email_sent;
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const isReadOnly = !isNew && !!form.email_sent && !isAdmin;
 
   const { data: crews = [] } = useQuery({
     queryKey: ['crews'],
