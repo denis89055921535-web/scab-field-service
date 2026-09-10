@@ -168,15 +168,29 @@ export default function Warehouse() {
           ))}
         </div>
         {filterLocation === 'warehouse' && warehouses.length > 0 && (
-          <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
-            <SelectTrigger><SelectValue placeholder="Выберите склад" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все склады</SelectItem>
-              {warehouses.map(w => (
-                <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setFilterWarehouse('all')}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                filterWarehouse === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              Все склады
+            </button>
+            {warehouses.map(w => (
+              <button
+                key={w.id}
+                type="button"
+                onClick={() => setFilterWarehouse(w.name)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  filterWarehouse === w.name ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                {w.name}
+              </button>
+            ))}
+          </div>
         )}
         {/* Типы — кликабельные плитки */}
         <div className="grid grid-cols-3 gap-3">

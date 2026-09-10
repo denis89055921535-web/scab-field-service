@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import AssetDocuments from './AssetDocuments';
-import { Package, MapPin, Hash, Wrench, Calendar, Building2, FileText, Users } from 'lucide-react';
+import { Package, MapPin, Hash, Wrench, Calendar, Building2, FileText, Users, Warehouse as WarehouseIcon } from 'lucide-react';
 
 const assetTypes = {
   bi_kit: 'Комплект БИ',
@@ -74,6 +74,7 @@ export default function AssetDetail({ asset, onUpdate }) {
           <InfoRow icon={Building2} label="Производитель" value={asset.manufacturer} />
           <InfoRow icon={Calendar} label="Дата ввода в работу" value={formatDate(asset.commissioned_date)} />
           <InfoRow icon={MapPin} label="Бригада" value={asset.location_type === 'crew' && asset.crew_number ? `Бригада ${asset.crew_number}` : null} />
+          <InfoRow icon={WarehouseIcon} label="Склад" value={asset.location_type === 'warehouse' ? asset.warehouse_name : null} />
           <InfoRow icon={Users} label="Партнёр" value={asset.partner} />
           <InfoRow icon={FileText} label="Примечания" value={asset.notes} />
         </CardContent>
