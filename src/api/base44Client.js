@@ -125,6 +125,7 @@ export const Asset = createEntityClient('/assets');
 export const Instruction = createEntityClient('/instructions');
 export const User = createEntityClient('/users');
 export const InstructionCategory = createEntityClient('/instruction-categories');
+export const Warehouse = createEntityClient('/warehouses');
 
 export const auth = {
   login: (email, password) => request('POST', '/auth/login', { email, password }),
@@ -140,7 +141,7 @@ export const auth = {
 
 export const base44 = {
   auth,
-  entities: { DrillingCrew, TripLog, Incident, Asset, Instruction, User, InstructionCategory },
+  entities: { DrillingCrew, TripLog, Incident, Asset, Instruction, User, InstructionCategory, Warehouse },
   integrations: {
     Core: {
       UploadFile: async ({ file }) => {

@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Loader2, Package, MapPin, Copy } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Package, MapPin, Copy, Warehouse as WarehouseIcon, X, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const assetTypes = {
@@ -34,13 +34,96 @@ const locationConfig = {
   repair: { label: 'В ремонте', color: 'bg-orange-100 text-orange-800' },
 };
 
-const PARTNERS = ['ИНК-Сервис', 'ИНК-ТКРС', 'Газпром Бурение', 'МУБР'];
-
 const emptyForm = {
   name: '', asset_type: 'bi_kit', serial_number: '', manufacturer: '', commissioned_date: '',
-  condition: 'working', location_type: 'warehouse', crew_number: '', notes: '', last_inspection_date: '',
-  partner: '',
+  condition: 'working', location_type: 'warehouse', crew_number: '', warehouse_name: '', notes: '',
+  last_inspection_date: '', partner: '',
 };
+
+function WarehouseManager({ PARTNERS }) {
+  const queryClient = useQueryClient();
+  const [newNames, setNewNames] = useState({});
+
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.list(),
+  });
+
+  const addMutation = useMutation({
+    mutationFn: ({ partner, name }) => base44.entities.Warehouse.create({ partner, name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      toast.success('Склад добавлен');
+    },
+    onError: (err) => toast.error('Ошибка: ' + (err.message || 'не удалось добавить')),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Warehouse.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['warehouses'] });
+      toast.success('Склад удалён');
+    },
+  });
+
+  return (
+    <Card className="p-4 mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <Settings2 className="w-4 h-4 text-muted-foreground" />
+        <h3 className="text-sm font-semibold">Управление складами</h3>
+      </div>
+      <div className="grid md:grid-cols-2 gap-4">
+        {PARTNERS.map(p => {
+          const list = warehouses.filter(w => w.partner === p);
+          return (
+            <div key={p} className="border border-border rounded-lg p-3">
+              <p className="text-xs font-medium text-muted-foreground mb-2">{p}</p>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {list.length === 0 && (
+                  <span className="text-xs text-muted-foreground">Складов пока нет</span>
+                )}
+                {list.map(w => (
+                  <span
+                    key={w.id}
+                    className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-muted"
+                  >
+                    {w.name}
+                    <button
+                      type="button"
+                      onClick={() => { if (confirm(`Удалить склад "${w.name}"?`)) deleteMutation.mutate(w.id); }}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                <Input
+                  value={newNames[p] || ''}
+                  onChange={e => setNewNames(prev => ({ ...prev, [p]: e.target.value }))}
+                  placeholder="Название склада..."
+                  className="h-8 text-xs"
+                />
+                <Button
+                  size="sm"
+                  className="h-8 px-2"
+                  disabled={!newNames[p]?.trim() || addMutation.isPending}
+                  onClick={() => {
+                    addMutation.mutate({ partner: p, name: newNames[p].trim() });
+                    setNewNames(prev => ({ ...prev, [p]: '' }));
+                  }}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
 
 export default function AdminWarehouse() {
   const queryClient = useQueryClient();
@@ -50,7 +133,9 @@ export default function AdminWarehouse() {
   const [editId, setEditId] = useState(null);
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
+  const [filterWarehouse, setFilterWarehouse] = useState('all');
   const [search, setSearch] = useState('');
+  const [showWarehouseManager, setShowWarehouseManager] = useState(false);
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets', partner],
@@ -63,6 +148,19 @@ export default function AdminWarehouse() {
     queryKey: ['crews'],
     queryFn: () => base44.entities.DrillingCrew.list(),
   });
+
+  const { data: allWarehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => base44.entities.Warehouse.list(),
+  });
+
+  // Склады текущего выбранного партнёра (для фильтра и формы актива)
+  const warehousesForFilter = partner ? allWarehouses.filter(w => w.partner === partner) : [];
+  const warehousesForForm = form.partner ? allWarehouses.filter(w => w.partner === form.partner) : [];
+
+  useEffect(() => {
+    setFilterWarehouse('all');
+  }, [partner]);
 
   const saveMutation = useMutation({
     mutationFn: (data) => editId
@@ -93,6 +191,7 @@ export default function AdminWarehouse() {
       condition: asset.condition || 'working',
       location_type: asset.location_type || 'warehouse',
       crew_number: asset.crew_number || '',
+      warehouse_name: asset.warehouse_name || '',
       notes: asset.notes || '',
       last_inspection_date: asset.last_inspection_date || '',
       partner: asset.partner || '',
@@ -117,6 +216,7 @@ export default function AdminWarehouse() {
       condition: asset.condition || 'working',
       location_type: asset.location_type || 'warehouse',
       crew_number: asset.crew_number || '',
+      warehouse_name: asset.warehouse_name || '',
       notes: asset.notes || '',
       last_inspection_date: '',
       partner: asset.partner || '',
@@ -128,11 +228,12 @@ export default function AdminWarehouse() {
   const filtered = assets.filter(a => {
     const byType = filterType === 'all' || a.asset_type === filterType;
     const byLoc = filterLocation === 'all' || a.location_type === filterLocation;
+    const byWarehouse = filterWarehouse === 'all' || a.warehouse_name === filterWarehouse;
     const q = search.trim().toLowerCase();
     const bySearch = !q ||
       (a.name || '').toLowerCase().includes(q) ||
       (a.serial_number || '').toLowerCase().includes(q);
-    return byType && byLoc && bySearch;
+    return byType && byLoc && byWarehouse && bySearch;
   });
 
   const stats = {
@@ -144,7 +245,7 @@ export default function AdminWarehouse() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold">Склад</h2>
           <Select value={partner || '__all__'} onValueChange={v => v === '__all__' ? clearPartner() : setPartner(v)}>
@@ -157,107 +258,136 @@ export default function AdminWarehouse() {
             </SelectContent>
           </Select>
         </div>
-        <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
-          <DialogTrigger asChild>
-            <Button size="sm" onClick={() => { setForm({ ...emptyForm, partner: partner || '' }); setEditId(null); }}>
-              <Plus className="w-4 h-4 mr-1" /> Добавить актив
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editId ? 'Редактирование актива' : 'Новый актив'}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 mt-2">
-              <div>
-                <Label className="text-xs">Название / идентификатор *</Label>
-                <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Например: БИ-001" />
-              </div>
-              <div>
-                <Label className="text-xs">Тип оборудования *</Label>
-                <Select value={form.asset_type} onValueChange={v => setForm({ ...form, asset_type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(assetTypes).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Серийный номер</Label>
-                <Input value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} placeholder="SN-..." />
-              </div>
-              <div>
-                <Label className="text-xs">Производитель</Label>
-                <Input value={form.manufacturer} onChange={e => setForm({ ...form, manufacturer: e.target.value })} placeholder="Например: ООО «ТехСервис»" />
-              </div>
-              <div>
-                <Label className="text-xs">Дата ввода в работу</Label>
-                <Input type="date" value={form.commissioned_date} onChange={e => setForm({ ...form, commissioned_date: e.target.value })} />
-              </div>
-              <div>
-                <Label className="text-xs">Состояние *</Label>
-                <Select value={form.condition} onValueChange={v => setForm({ ...form, condition: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(conditionConfig).map(([k, { label }]) => (
-                      <SelectItem key={k} value={k}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Местоположение *</Label>
-                <Select value={form.location_type} onValueChange={v => setForm({ ...form, location_type: v, crew_number: '' })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(locationConfig).map(([k, { label }]) => (
-                      <SelectItem key={k} value={k}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {form.location_type === 'crew' && (
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setShowWarehouseManager(v => !v)}>
+            <WarehouseIcon className="w-4 h-4 mr-1" /> Склады
+          </Button>
+          <Dialog open={open} onOpenChange={v => { if (!v) closeDialog(); else setOpen(true); }}>
+            <DialogTrigger asChild>
+              <Button size="sm" onClick={() => { setForm({ ...emptyForm, partner: partner || '' }); setEditId(null); }}>
+                <Plus className="w-4 h-4 mr-1" /> Добавить актив
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editId ? 'Редактирование актива' : 'Новый актив'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 mt-2">
                 <div>
-                  <Label className="text-xs">Бригада</Label>
-                  <Select value={form.crew_number} onValueChange={v => setForm({ ...form, crew_number: v })}>
-                    <SelectTrigger><SelectValue placeholder="Выберите бригаду" /></SelectTrigger>
+                  <Label className="text-xs">Название / идентификатор *</Label>
+                  <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Например: БИ-001" />
+                </div>
+                <div>
+                  <Label className="text-xs">Тип оборудования *</Label>
+                  <Select value={form.asset_type} onValueChange={v => setForm({ ...form, asset_type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {crews.map(c => (
-                        <SelectItem key={c.id} value={c.crew_number}>
-                          Бригада {c.crew_number}{c.field_name ? ` — ${c.field_name}` : ''}
-                        </SelectItem>
+                      {Object.entries(assetTypes).map(([k, v]) => (
+                        <SelectItem key={k} value={k}>{v}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-              )}
-              <div>
-                <Label className="text-xs">Дата последней инспекции</Label>
-                <Input type="date" value={form.last_inspection_date} onChange={e => setForm({ ...form, last_inspection_date: e.target.value })} />
+                <div>
+                  <Label className="text-xs">Серийный номер</Label>
+                  <Input value={form.serial_number} onChange={e => setForm({ ...form, serial_number: e.target.value })} placeholder="SN-..." />
+                </div>
+                <div>
+                  <Label className="text-xs">Производитель</Label>
+                  <Input value={form.manufacturer} onChange={e => setForm({ ...form, manufacturer: e.target.value })} placeholder="Например: ООО «ТехСервис»" />
+                </div>
+                <div>
+                  <Label className="text-xs">Дата ввода в работу</Label>
+                  <Input type="date" value={form.commissioned_date} onChange={e => setForm({ ...form, commissioned_date: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Состояние *</Label>
+                  <Select value={form.condition} onValueChange={v => setForm({ ...form, condition: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(conditionConfig).map(([k, { label }]) => (
+                        <SelectItem key={k} value={k}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Партнёр</Label>
+                  <Select value={form.partner || ''} onValueChange={v => setForm({ ...form, partner: v, warehouse_name: '' })}>
+                    <SelectTrigger><SelectValue placeholder="Выберите партнёра" /></SelectTrigger>
+                    <SelectContent>
+                      {PARTNERS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Местоположение *</Label>
+                  <Select value={form.location_type} onValueChange={v => setForm({ ...form, location_type: v, crew_number: '', warehouse_name: '' })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(locationConfig).map(([k, { label }]) => (
+                        <SelectItem key={k} value={k}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {form.location_type === 'crew' && (
+                  <div>
+                    <Label className="text-xs">Бригада</Label>
+                    <Select value={form.crew_number} onValueChange={v => setForm({ ...form, crew_number: v })}>
+                      <SelectTrigger><SelectValue placeholder="Выберите бригаду" /></SelectTrigger>
+                      <SelectContent>
+                        {crews.map(c => (
+                          <SelectItem key={c.id} value={c.crew_number}>
+                            Бригада {c.crew_number}{c.field_name ? ` — ${c.field_name}` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {form.location_type === 'warehouse' && (
+                  <div>
+                    <Label className="text-xs">Конкретный склад</Label>
+                    {form.partner ? (
+                      warehousesForForm.length > 0 ? (
+                        <Select value={form.warehouse_name || ''} onValueChange={v => setForm({ ...form, warehouse_name: v })}>
+                          <SelectTrigger><SelectValue placeholder="Выберите склад" /></SelectTrigger>
+                          <SelectContent>
+                            {warehousesForForm.map(w => (
+                              <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          У партнёра «{form.partner}» ещё нет складов. Добавьте склад через кнопку «Склады» вверху страницы.
+                        </p>
+                      )
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Сначала выберите партнёра</p>
+                    )}
+                  </div>
+                )}
+                <div>
+                  <Label className="text-xs">Дата последней инспекции</Label>
+                  <Input type="date" value={form.last_inspection_date} onChange={e => setForm({ ...form, last_inspection_date: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">Примечания</Label>
+                  <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="resize-none" />
+                </div>
+                <Button className="w-full" onClick={() => saveMutation.mutate(form)} disabled={saveMutation.isPending || !form.name}>
+                  {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {editId ? 'Сохранить' : 'Добавить'}
+                </Button>
               </div>
-              <div>
-                <Label className="text-xs">Партнёр</Label>
-                <Select value={form.partner || ''} onValueChange={v => setForm({ ...form, partner: v })}>
-                  <SelectTrigger><SelectValue placeholder="Выберите партнёра" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>Не указан</SelectItem>
-                    {PARTNERS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Примечания</Label>
-                <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} className="resize-none" />
-              </div>
-              <Button className="w-full" onClick={() => saveMutation.mutate(form)} disabled={saveMutation.isPending || !form.name}>
-                {saveMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {editId ? 'Сохранить' : 'Добавить'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
+
+      {showWarehouseManager && <WarehouseManager PARTNERS={PARTNERS} />}
 
       {/* Статистика */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -303,6 +433,17 @@ export default function AdminWarehouse() {
             ))}
           </SelectContent>
         </Select>
+        {partner && warehousesForFilter.length > 0 && (
+          <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Склад" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все склады</SelectItem>
+              {warehousesForFilter.map(w => (
+                <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <span className="text-sm text-muted-foreground ml-1">
           {filtered.length === assets.length ? `${assets.length} позиций` : `${filtered.length} из ${assets.length}`}
         </span>
@@ -348,6 +489,9 @@ export default function AdminWarehouse() {
                         </span>
                         {asset.location_type === 'crew' && asset.crew_number && (
                           <span className="text-xs text-muted-foreground">Бригада {asset.crew_number}</span>
+                        )}
+                        {asset.location_type === 'warehouse' && asset.warehouse_name && (
+                          <span className="text-xs text-muted-foreground">{asset.warehouse_name}</span>
                         )}
                       </div>
                     </TableCell>

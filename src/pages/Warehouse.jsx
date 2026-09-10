@@ -37,6 +37,7 @@ export default function Warehouse() {
   const { partner } = usePartner();
   const [filterType, setFilterType] = useState('all');
   const [filterLocation, setFilterLocation] = useState('all');
+  const [filterWarehouse, setFilterWarehouse] = useState('all');
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [editingAsset, setEditingAsset] = useState(null);
 
@@ -47,10 +48,17 @@ export default function Warehouse() {
       : base44.entities.Asset.list('-created_date'),
   });
 
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses', partner],
+    queryFn: () => partner ? base44.entities.Warehouse.filter({ partner }) : Promise.resolve([]),
+    enabled: !!partner,
+  });
+
   const filtered = assets.filter(a => {
     const byType = filterType === 'all' || a.asset_type === filterType;
     const byLoc = filterLocation === 'all' || a.location_type === filterLocation;
-    return byType && byLoc;
+    const byWarehouse = filterWarehouse === 'all' || a.warehouse_name === filterWarehouse;
+    return byType && byLoc && byWarehouse;
   });
 
   const exportToExcel = () => {
@@ -148,7 +156,7 @@ export default function Warehouse() {
           ].map(({ key, label, value, color }) => (
             <Card
               key={label}
-              onClick={() => setFilterLocation(key === filterLocation ? 'all' : key)}
+              onClick={() => { setFilterLocation(key === filterLocation ? 'all' : key); setFilterWarehouse('all'); }}
               className={`p-3 flex items-center gap-3 cursor-pointer transition-all active:opacity-70 ` + (filterLocation === key && key !== 'all' ? 'ring-2 ring-primary' : '')}
             >
               <Package className={`w-5 h-5 ` + color} />
@@ -159,6 +167,17 @@ export default function Warehouse() {
             </Card>
           ))}
         </div>
+        {filterLocation === 'warehouse' && warehouses.length > 0 && (
+          <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
+            <SelectTrigger><SelectValue placeholder="Выберите склад" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все склады</SelectItem>
+              {warehouses.map(w => (
+                <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         {/* Типы — кликабельные плитки */}
         <div className="grid grid-cols-3 gap-3">
           {[
@@ -214,6 +233,9 @@ export default function Warehouse() {
                         </span>
                         {asset.location_type === 'crew' && asset.crew_number && (
                           <span className="text-xs text-muted-foreground">Бригада {asset.crew_number}</span>
+                        )}
+                        {asset.location_type === 'warehouse' && asset.warehouse_name && (
+                          <span className="text-xs text-muted-foreground">{asset.warehouse_name}</span>
                         )}
                       </div>
                       <ChevronRight className="w-4 h-4 text-muted-foreground mt-0.5" />
