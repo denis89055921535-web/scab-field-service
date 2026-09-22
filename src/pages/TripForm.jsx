@@ -1,12 +1,12 @@
 import { checkOnline } from '@/lib/network';
 import { cn } from '@/lib/utils';
 import { WORK_TYPE_OPTIONS, OTHER_PREFIX, parseWorkTypes, serializeWorkTypes } from '@/lib/workTypes';
-import { outboxGet, outboxUpdate, outboxRemove } from '@/lib/offlineDb';
+import { outboxGet, outboxUpdate, outboxRemove, draftSave, draftGet, draftRemove } from '@/lib/offlineDb';
 import { takeAndSavePhoto, takeAndSaveMultiplePhotos, uploadLocalPhotos } from '@/lib/photoService';
 import { useAuth } from '@/lib/AuthContext';
 import { uploadLocalFiles } from '@/lib/fileService';
 import SmartPhoto from '@/components/common/SmartPhoto';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -68,12 +68,45 @@ export default function TripForm() {
   const [form, setForm] = useState({ ...EMPTY_FORM, partner: partner || '' });
   const [employees, setEmployees] = useState(EMPTY_EMPLOYEES);
   const [showErrors, setShowErrors] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const draftAppliedRef = useRef(false);
+  const draftKey = isNew ? 'new' : tripId;
+
+  // Восстановление автосохранённого черновика (защита от сбоев/разрядки телефона).
+  // Выполняется один раз при открытии формы, до применения серверных данных.
+  useEffect(() => {
+    (async () => {
+      try {
+        const draft = await draftGet(draftKey);
+        if (draft && draft.data) {
+          setForm(f => ({ ...f, ...draft.data }));
+          if (draft.data.employees_list?.length) setEmployees(draft.data.employees_list);
+          draftAppliedRef.current = true;
+          const time = new Date(draft.savedAt).toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+          toast('Восстановлен несохранённый черновик от ' + time);
+        }
+      } catch (e) { /* игнор */ }
+      setHydrated(true);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Автосохранение черновика по мере заполнения формы (с задержкой, чтобы не писать на каждое нажатие клавиши)
+  useEffect(() => {
+    if (!hydrated) return;
+    const timeout = setTimeout(() => {
+      draftSave(draftKey, form).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(timeout);
+  }, [form, hydrated]);
   const [sending, setSending] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
 
   // Запрет редактирования для любых сохранённых выездов
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const isSupervisor = user?.role === 'supervisor';
+  const canDeleteSentReports = isAdmin || isSupervisor;
   const isReadOnly = !isNew && !!form.email_sent && !isAdmin;
 
   const { data: crews = [] } = useQuery({
@@ -115,7 +148,8 @@ export default function TripForm() {
   }, []);
 
   useEffect(() => {
-    if (existingTrip) {
+    // Если уже восстановлен несохранённый локальный черновик — не затираем его серверными данными
+    if (existingTrip && !draftAppliedRef.current) {
       const biList = existingTrip.bi_kits_list?.length
         ? existingTrip.bi_kits_list
         : existingTrip.bi_kits_numbers
@@ -158,6 +192,7 @@ export default function TripForm() {
     },
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
+      draftRemove(draftKey).catch(() => {});
       const offline = saved?._offline;
       toast.success(offline ? 'Сохранено на устройстве (не отправлено)' : (isNew ? 'Выезд создан' : 'Выезд обновлён'));
       if (isNew || saved?._offline) {
@@ -380,42 +415,55 @@ const handleSubmitAndSend = async () => {
           Отчёт отправлен: {new Date(form.email_sent_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
         </div>
       )}
-      {form.email_sent && user?.role === 'supervisor' && (
-        <button
-          type="button"
-          onClick={async () => {
-            const next = !form.verified_by_supervisor;
-            setForm(f => ({ ...f, verified_by_supervisor: next }));
-            try {
-              await base44.entities.TripLog.update(tripId, { verified_by_supervisor: next });
-              toast.success(next ? 'Отчёт отмечен как проверенный' : 'Отметка проверки снята');
-            } catch (err) {
-              setForm(f => ({ ...f, verified_by_supervisor: !next }));
-              toast.error('Ошибка: ' + (err.message || 'не удалось сохранить'));
-            }
-          }}
-          className={cn(
-            'mx-4 mt-3 w-[calc(100%-2rem)] flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm transition-colors',
-            form.verified_by_supervisor
-              ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400'
-              : 'border-border text-muted-foreground hover:bg-muted'
-          )}
-        >
-          <span className={cn(
-            'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
-            form.verified_by_supervisor ? 'bg-emerald-500 border-emerald-500' : 'border-muted-foreground'
-          )}>
-            {form.verified_by_supervisor && <CheckCircle2 className="w-4 h-4 text-white" />}
-          </span>
-          Проверено Супервайзером
-        </button>
-      )}
-      {form.email_sent && form.verified_by_supervisor && user?.role !== 'supervisor' && (
-        <div className="mx-4 mt-3 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-700 rounded-lg text-sm text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4" />
-          Проверено Супервайзером
-        </div>
-      )}
+      {form.email_sent && [
+        { field: 'verified_by_supervisor', role: 'supervisor', label: 'Проверено Супервайзером' },
+        { field: 'verified_by_coordinator', role: 'coordinator', label: 'Проверено Координатором проекта' },
+        { field: 'verified_by_equipment_engineer', role: 'equipment_engineer', label: 'Проверено Инженером по оборудованию' },
+      ].map(function(v) {
+        const checked = !!form[v.field];
+        if (user?.role === v.role) {
+          return (
+            <button
+              key={v.field}
+              type="button"
+              onClick={async () => {
+                const next = !form[v.field];
+                setForm(f => ({ ...f, [v.field]: next }));
+                try {
+                  await base44.entities.TripLog.update(tripId, { [v.field]: next });
+                  toast.success(next ? 'Отчёт отмечен как проверенный' : 'Отметка проверки снята');
+                } catch (err) {
+                  setForm(f => ({ ...f, [v.field]: !next }));
+                  toast.error('Ошибка: ' + (err.message || 'не удалось сохранить'));
+                }
+              }}
+              className={cn(
+                'mx-4 mt-3 w-[calc(100%-2rem)] flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm transition-colors',
+                checked
+                  ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400'
+                  : 'border-border text-muted-foreground hover:bg-muted'
+              )}
+            >
+              <span className={cn(
+                'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
+                checked ? 'bg-emerald-500 border-emerald-500' : 'border-muted-foreground'
+              )}>
+                {checked && <CheckCircle2 className="w-4 h-4 text-white" />}
+              </span>
+              {v.label}
+            </button>
+          );
+        }
+        if (checked) {
+          return (
+            <div key={v.field} className="mx-4 mt-3 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-700 rounded-lg text-sm text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4" />
+              {v.label}
+            </div>
+          );
+        }
+        return null;
+      })}
 
       <div className="p-4 space-y-4">
         {/* Основные поля */}
@@ -684,7 +732,7 @@ const handleSubmitAndSend = async () => {
           <div className="flex gap-2 flex-wrap">
             {form.photos.map((url, i) => (
               <div key={i} className="relative w-16 h-16">
-                <SmartPhoto src={url} className="w-16 h-16 rounded-lg object-cover" alt="" />
+                <SmartPhoto src={url} gallery={form.photos} index={i} className="w-16 h-16 rounded-lg object-cover" alt="" />
                 {!isReadOnly && (
                   <button type="button" onClick={() => removePhoto(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
                     <X className="w-2.5 h-2.5" />
@@ -786,7 +834,7 @@ const handleSubmitAndSend = async () => {
           </Button>
         )}
 
-        {!isNew && !form.email_sent && (
+        {!isNew && (!form.email_sent || canDeleteSentReports) && (
           <Button
             variant="outline"
             className="h-11 px-3 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"

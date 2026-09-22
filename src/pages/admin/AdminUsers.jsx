@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 const API_URL = 'https://scabpro.com/api';
@@ -136,27 +137,19 @@ export default function AdminUsers() {
                   {u.position && <p className="text-sm text-muted-foreground">{u.position}</p>}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap justify-end">
-                  <Badge variant={u.role === 'admin' ? 'default' : u.role === 'supervisor' ? 'outline' : 'secondary'}>
-                    {u.role === 'admin' ? 'Администратор' : u.role === 'supervisor' ? 'Супервайзер' : 'Инженер'}
-                  </Badge>
-                  {u.role !== 'admin' && (
-                    <Button size="sm" variant="outline"
-                      onClick={() => updateUser.mutate({ id: u.id, role: 'admin', status: 'active', position: u.position, phone: u.phone, department: u.department, allowed_partners: u.allowed_partners || [] })}>
-                      Сделать админом
-                    </Button>
-                  )}
-                  {u.role !== 'supervisor' && u.role !== 'admin' && (
-                    <Button size="sm" variant="outline"
-                      onClick={() => updateUser.mutate({ id: u.id, role: 'supervisor', status: 'active', position: u.position, phone: u.phone, department: u.department, allowed_partners: u.allowed_partners || [] })}>
-                      Сделать супервайзером
-                    </Button>
-                  )}
-                  {u.role === 'supervisor' && (
-                    <Button size="sm" variant="outline"
-                      onClick={() => updateUser.mutate({ id: u.id, role: 'engineer', status: 'active', position: u.position, phone: u.phone, department: u.department, allowed_partners: u.allowed_partners || [] })}>
-                      Убрать роль супервайзера
-                    </Button>
-                  )}
+                  <Select
+                    value={u.role || 'engineer'}
+                    onValueChange={(newRole) => updateUser.mutate({ id: u.id, role: newRole, status: 'active', position: u.position, phone: u.phone, department: u.department, allowed_partners: u.allowed_partners || [] })}
+                  >
+                    <SelectTrigger className="h-8 w-44 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="engineer">Инженер</SelectItem>
+                      <SelectItem value="supervisor">Супервайзер</SelectItem>
+                      <SelectItem value="coordinator">Координатор проекта</SelectItem>
+                      <SelectItem value="equipment_engineer">Инженер по оборудованию</SelectItem>
+                      <SelectItem value="admin">Администратор</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Button size="sm" variant="destructive"
                     onClick={() => { if (confirm('Удалить пользователя?')) deleteUser.mutate(u.id); }}>
                     Удалить

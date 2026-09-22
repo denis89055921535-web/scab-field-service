@@ -5,6 +5,7 @@
 // по-прежнему корректно читаются.
 
 export const WORK_TYPE_OPTIONS = [
+  { value: 'maintenance', label: 'Обслуживание оборудования' },
   { value: 'maintenance_work_position', label: 'Обслуживание оборуд. (перевод в рабочее положение)' },
   { value: 'maintenance_service_position', label: 'Обслуживание оборуд. (перевод в сервисное положение)' },
   { value: 'bi_accident', label: 'Авария БИ' },

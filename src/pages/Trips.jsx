@@ -232,12 +232,19 @@ export default function Trips() {
                       {formatWorkTypes(trip.work_type, workTypeLabels)}
                     </div>
                   )}
-                  {trip.verified_by_supervisor && (
-                    <div className="flex items-center justify-end gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Проверено Супервайзером
-                    </div>
-                  )}
+                  {[
+                    { field: 'verified_by_supervisor', label: 'Проверено Супервайзером' },
+                    { field: 'verified_by_coordinator', label: 'Проверено Координатором проекта' },
+                    { field: 'verified_by_equipment_engineer', label: 'Проверено Инженером по оборудованию' },
+                  ].map(function(v) {
+                    if (!trip[v.field]) return null;
+                    return (
+                      <div key={v.field} className="flex items-center justify-end gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        {v.label}
+                      </div>
+                    );
+                  })}
                 </div>
               </Card>
             ))}

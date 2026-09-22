@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'scab-offline';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 // Инициализация базы с тремя хранилищами
 let dbPromise = null;
@@ -26,6 +26,10 @@ function getDB() {
         // Хранилище файлов (Excel/PDF) для офлайн
         if (!db.objectStoreNames.contains('files')) {
           db.createObjectStore('files', { keyPath: 'fileId' });
+        }
+        // Автосохранённые черновики отчётов (защита от сбоев/разрядки телефона)
+        if (!db.objectStoreNames.contains('drafts')) {
+          db.createObjectStore('drafts', { keyPath: 'draftKey' });
         }
       },
     });
@@ -121,6 +125,25 @@ export async function fileGet(fileId) {
 export async function fileRemove(fileId) {
   const db = await getDB();
   await db.delete('files', fileId);
+}
+
+// ===== АВТОСОХРАНЁННЫЕ ЧЕРНОВИКИ (защита от сбоев) =====
+
+// Сохранить текущее состояние формы отчёта. draftKey — id отчёта или 'new' для нового.
+export async function draftSave(draftKey, data) {
+  const db = await getDB();
+  await db.put('drafts', { draftKey, data, savedAt: Date.now() });
+}
+
+export async function draftGet(draftKey) {
+  const db = await getDB();
+  const rec = await db.get('drafts', draftKey);
+  return rec || null;
+}
+
+export async function draftRemove(draftKey) {
+  const db = await getDB();
+  await db.delete('drafts', draftKey);
 }
 
 // ===== СЛУЖЕБНОЕ =====

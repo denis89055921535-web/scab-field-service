@@ -87,6 +87,7 @@ export const CHECKLIST_SECTIONS = [
       { key: 'comm_lines', label: 'Проверка коммуникационных линий', type: 'yesno', hasPhotoComment: true },
       { key: 'external', label: 'Проверка внешних подключений', type: 'yesno', hasPhotoComment: true },
       { key: 'silica_gel', label: 'Проверка состояния силикагеля', type: 'yesno', hasPhotoComment: true },
+      { key: 'rfid_export_file', label: 'Отчёт по выгруженным меткам (Excel)', type: 'file', fileLabel: 'Прикрепить отчёт (Excel)' },
     ],
   },
   {
@@ -229,7 +230,7 @@ function PhotoUpload({ photos = [], onAdd, onRemove }) {
     <div className="flex flex-wrap gap-2">
       {photos.map((url, i) => (
         <div key={i} className="relative w-14 h-14">
-          <SmartPhoto src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+          <SmartPhoto src={url} gallery={photos} index={i} className="w-14 h-14 rounded-lg object-cover" alt="" />
           <button type="button" onClick={() => onRemove(i)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center">
             <X className="w-2.5 h-2.5" />
           </button>
@@ -368,7 +369,7 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                     {readOnly ? (
                       <div className="flex flex-wrap gap-2">
                         {(sectionPhotos[field.key] || []).map((url, i) => (
-                          <SmartPhoto key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+                          <SmartPhoto key={i} src={url} gallery={sectionPhotos[field.key] || []} index={i} className="w-14 h-14 rounded-lg object-cover" alt="" />
                         ))}
                         {!(sectionPhotos[field.key]?.length) && <span className="text-xs text-muted-foreground">Нет фото</span>}
                       </div>
@@ -422,7 +423,7 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                       {readOnly ? (
                         <div className="flex flex-wrap gap-2">
                           {(sectionPhotos[field.key] || []).map((url, i) => (
-                            <SmartPhoto key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+                            <SmartPhoto key={i} src={url} gallery={sectionPhotos[field.key] || []} index={i} className="w-14 h-14 rounded-lg object-cover" alt="" />
                           ))}
                           {!(sectionPhotos[field.key]?.length) && <span className="text-xs text-muted-foreground">Нет фото</span>}
                         </div>
@@ -462,7 +463,7 @@ function SectionBlock({ section, sectionData = {}, onChange, showErrors, readOnl
                 {readOnly ? (
                   <div className="flex flex-wrap gap-2">
                     {(sectionData.sectionPhotos || []).map((url, i) => (
-                      <SmartPhoto key={i} src={url} className="w-14 h-14 rounded-lg object-cover" alt="" />
+                      <SmartPhoto key={i} src={url} gallery={sectionData.sectionPhotos || []} index={i} className="w-14 h-14 rounded-lg object-cover" alt="" />
                     ))}
                     {!(sectionData.sectionPhotos?.length) && <span className="text-xs text-muted-foreground">Нет фото</span>}
                   </div>
